@@ -1,7 +1,7 @@
 import {Suspense} from 'react'
 import HotelsListContainer, {HotelsList} from './HotelsList'
 import {getSearchResults, getOffers, availabilitySearch, AvailabilityParams} from './api'
-import {SearchParams} from './types'
+import {SearchParams, OfferEntity} from './types'
 
 interface Props {
   searchParams: SearchParams
@@ -29,6 +29,10 @@ function getAvailability(params: AvailabilityParams) {
 
     poll()
   })
+}
+
+interface AvailabilityResponse {
+  results: OfferEntity[]
 }
 
 async function getResultsWithAvailability(searchParams: SearchParams) {
@@ -61,7 +65,7 @@ async function getResultsWithAvailability(searchParams: SearchParams) {
   const availability = await getAvailability({
     hotelIds: hotelIds,
     ...searchParams
-  })
+  }) as unknown as AvailabilityResponse
 
   const availableHotelIds = availability.results
     .filter((offerEntity) => offerEntity.offers.length !== 0)
@@ -75,7 +79,6 @@ async function getResultsWithAvailability(searchParams: SearchParams) {
 }
 
 async function SearchResults(props: Props) {
-  // const results = await getSearchResults(props.searchParams)
   const results = await getResultsWithAvailability(props.searchParams)
 
   if (!results) return <p>No results</p>
