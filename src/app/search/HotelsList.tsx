@@ -16,14 +16,11 @@ interface ListProps {
 }
 
 export function HotelsList(props: ListProps) {
-  console.log(props)
   return (
     <>
       {props.hotelIds.map(hotelId => {
         const hotel = props.hotelEntities[hotelId]
         const offerEntity = props.offers?.find(res => res.id === hotel.objectID)
-
-        //if (props.isComplete && !offerEntity?.offers.length) return null
 
         return (
           <div className="my-3 p-2 border" key={hotel.objectID}>

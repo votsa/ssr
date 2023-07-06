@@ -3,7 +3,8 @@ export interface SearchParams {
   checkIn: string
   checkOut: string
   rooms: string
-  offset: number
+  offset?: number
+  pagesize?: number
   facilities?: number | number[]
   useOffers: string
 }

@@ -36,7 +36,7 @@ interface AvailabilityResponse {
 }
 
 async function getResultsWithAvailability(searchParams: SearchParams) {
-  const staticResults1 = getSearchResults(searchParams)
+  const staticResults1 = getSearchResults({...searchParams})
   const staticResults2 = getSearchResults({...searchParams, offset: 40})
   const staticResults3 = getSearchResults({...searchParams, offset: 80})
   const staticResults4 = getSearchResults({...searchParams, offset: 120})

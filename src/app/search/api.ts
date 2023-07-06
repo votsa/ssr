@@ -20,12 +20,12 @@ export function removeEmpty(object: Record<string, any>): Record<string, any> {
 function createSearchRequestString(
   searchParams: SearchParams
 ) {
-  console.log('searchParams.facilities', searchParams.facilities)
   const urlParameters = removeEmpty({
     placeId: searchParams.placeId,
     checkIn: searchParams.checkIn,
     checkOut: searchParams.checkOut,
     rooms: searchParams.rooms,
+    pagesize: searchParams.pagesize,
     anonymousId: 'anonymous-id',
     searchId: 'search-id',
     language: 'en',
@@ -44,6 +44,8 @@ function createSearchRequestString(
 
 export async function getSearchResults(searchParams: SearchParams) {
   const requestString = createSearchRequestString(searchParams)
+
+  console.log(requestString)
 
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_HOSTNAME}/search?${requestString}`)
  
