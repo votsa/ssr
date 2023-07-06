@@ -111,7 +111,7 @@ function createAvailabilityRequestString(
     countryCode: 'NL',
     userAgent: 'next-js-vio-test',
     deviceType: 'desktop',
-    offersCount: 1,
+    offersCount: 3,
     rand: new Date().getTime(),
   })
 

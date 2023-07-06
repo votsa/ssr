@@ -16,6 +16,7 @@ interface ListProps {
 }
 
 export function HotelsList(props: ListProps) {
+  console.log(props)
   return (
     <>
       {props.hotelIds.map(hotelId => {
@@ -48,7 +49,7 @@ export function HotelsList(props: ListProps) {
                     <div className="text-xs py-3">Loading...</div>
                   </div>
                 )}
-                {props.isComplete && offerEntity?.offers.length && <OffersList offerEntity={offerEntity} />}
+                {offerEntity?.offers.length && <OffersList offerEntity={offerEntity} />}
               </div>
             </div>
           </div>
@@ -66,9 +67,16 @@ interface ContainerProps {
 export default function HotelsListContainer(props: ContainerProps) {
   const [hotelIdsPages, setHotelIdsPages] = useState([props.initialResults.hotelIds])
   const [hotelEntities, setHotelEntities] = useState({...props.initialResults.hotelEntities ?? {}})
-  const {offers, isComplete} = useOffers(hotelIdsPages[0], props.searchParams)
+  const {offers, isComplete} = useOffers(hotelIdsPages[0], props.searchParams, props.initialResults.offerEntities)
 
   const hotelIds = hotelIdsPages.flatMap(i => i)
 
-  return <HotelsList isComplete={isComplete} hotelIds={hotelIds} hotelEntities={hotelEntities} offers={offers} />
+  return (
+    <HotelsList
+      isComplete={isComplete}
+      hotelIds={hotelIds}
+      hotelEntities={hotelEntities}
+      offers={offers}
+    />
+  )
 }

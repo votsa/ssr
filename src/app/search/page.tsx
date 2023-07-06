@@ -72,8 +72,11 @@ async function getResultsWithAvailability(searchParams: SearchParams) {
     .map((offerEntity) => offerEntity.id)
     .slice(0, 20)
 
+  const offerEntities = availability.results?.filter((offerEntity) => availableHotelIds.includes(offerEntity.id))
+
   return {
     hotelEntities,
+    offerEntities,
     hotelIds: availableHotelIds
   }
 }

@@ -5,8 +5,8 @@ import {getOffers} from './api'
 import {SearchParams} from './types'
 import {OfferEntity} from './types'
 
-export function useOffers(hotelIds: string[], searchParams: SearchParams) {
-  const [offers, setOffers] = useState<OfferEntity[]>([])
+export function useOffers(hotelIds: string[], searchParams: SearchParams, initialOfferEntities: OfferEntity[] = []) {
+  const [offers, setOffers] = useState<OfferEntity[]>(initialOfferEntities)
   const [isComplete, setIsComplete] = useState(false)
 
   useEffect(() => {
@@ -16,7 +16,8 @@ export function useOffers(hotelIds: string[], searchParams: SearchParams) {
       const offers = await getOffers(hotelIds, searchParams)
 
       setOffers((existingOffers) => {
-        return [...existingOffers, ...offers.results]
+        //return [...existingOffers, ...offers.results]
+        return offers.results
       })
 
       setIsComplete(true)
