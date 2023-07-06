@@ -123,10 +123,11 @@ export async function availabilitySearch(searchParams: AvailabilityParams) {
 
   const offersUrl = `${process.env.NEXT_PUBLIC_AVAILABILITY_API_HOSTNAME}/v3/search?${requestString}`
 
+  const requestHeaders: HeadersInit = new Headers();
+  requestHeaders.set('X-API-Key', process.env.NEXT_PUBLIC_AVAILABILITY_API_KEY as string)
+
   const res = await fetch(offersUrl, {
-    headers: {
-      'X-API-Key': process.env.NEXT_PUBLIC_AVAILABILITY_API_KEY
-    }
+    headers: requestHeaders
   })
  
   if (!res.ok) {
