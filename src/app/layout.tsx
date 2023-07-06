@@ -15,7 +15,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <div className="p-3 text-xl bg-blue-100">Vio.com</div>
+        <div className="container mx-auto max-w-5xl">{children}</div>
+      </body>
     </html>
   )
 }
