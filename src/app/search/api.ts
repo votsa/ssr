@@ -25,7 +25,7 @@ function createSearchRequestString(
     checkIn: searchParams.checkIn,
     checkOut: searchParams.checkOut,
     rooms: searchParams.rooms,
-    pagesize: searchParams.pagesize,
+    pageSize: searchParams.pageSize,
     anonymousId: 'anonymous-id',
     searchId: 'search-id',
     language: 'en',

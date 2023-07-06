@@ -4,7 +4,7 @@ export interface SearchParams {
   checkOut: string
   rooms: string
   offset?: number
-  pagesize?: number
+  pageSize?: number
   facilities?: number | number[]
   useOffers: string
 }
