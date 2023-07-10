@@ -7,6 +7,7 @@ export interface SearchParams {
   pageSize?: number
   facilities?: number | number[]
   useOffers: string
+  searchId?: string
 }
 
 export interface Offer {

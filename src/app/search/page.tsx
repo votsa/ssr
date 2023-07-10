@@ -1,11 +1,15 @@
 import {Suspense} from 'react'
+import {v4 as uuidv4} from 'uuid'
+
 import HotelsListContainer, {HotelsList} from './HotelsList'
 import {getSearchResults, getOffers, availabilitySearch, AvailabilityParams} from './api'
-import {SearchParams, OfferEntity} from './types'
+import {SearchParams, OfferEntity, Hotel} from './types'
 
 interface Props {
   searchParams: SearchParams
 }
+
+const CLIENT_PAGE_SIZE = 20
 
 function getAvailability(params: AvailabilityParams) {
   let pollsCount = 0
@@ -36,58 +40,47 @@ interface AvailabilityResponse {
 }
 
 async function getResultsWithAvailability(searchParams: SearchParams) {
-  const staticResults1 = getSearchResults({...searchParams})
-  const staticResults2 = getSearchResults({...searchParams, offset: 40})
-  const staticResults3 = getSearchResults({...searchParams, offset: 80})
-  const staticResults4 = getSearchResults({...searchParams, offset: 120})
-  const staticResults5 = getSearchResults({...searchParams, offset: 160})
-
-  const [res1, res2, res3, res4, res5] = await Promise.all([
-    staticResults1, staticResults2, staticResults3, staticResults4, staticResults5
-  ])
-
-  const hotelIds = [
-    ...(res1?.hotelIds ?? []),
-    ...(res2?.hotelIds ?? []),
-    ...(res3?.hotelIds ?? []),
-    ...(res4?.hotelIds ?? []),
-    ...(res5?.hotelIds ?? [])
-  ]
-
-  const hotelEntities = {
-    ...(res1?.hotelEntities ?? {}),
-    ...(res2?.hotelEntities ?? {}),
-    ...(res3?.hotelEntities ?? {}),
-    ...(res4?.hotelEntities ?? {}),
-    ...(res5?.hotelEntities ?? {}),
-  }
+  const staticResults = await getSearchResults({...searchParams, pageSize: 500}) ?? {}
 
   const availability = await getAvailability({
-    hotelIds: hotelIds,
+    hotelIds: staticResults.hotelIds,
     ...searchParams
   }) as unknown as AvailabilityResponse
 
+  const availableHotelEntities: Record<string, Hotel> = {}
+
   const availableHotelIds = availability.results
     .filter((offerEntity) => offerEntity.offers.length !== 0)
-    .map((offerEntity) => offerEntity.id)
-    .slice(0, 20)
+    .map((offerEntity) => {
+      availableHotelEntities[offerEntity.id] = staticResults.hotelEntities[offerEntity.id]
 
-  const offerEntities = availability.results?.filter((offerEntity) => availableHotelIds.includes(offerEntity.id))
+      return offerEntity.id
+    })
+    .slice(0, CLIENT_PAGE_SIZE)
+
+  const offerEntities = availability.results?.filter(
+    (offerEntity) => availableHotelIds.includes(offerEntity.id)
+  )
 
   return {
-    hotelEntities,
+    hotelEntities: staticResults.hotelEntities,
     offerEntities,
     hotelIds: availableHotelIds
   }
 }
 
 async function SearchResults(props: Props) {
-  const results = await getResultsWithAvailability(props.searchParams)
+    const searchParams = {
+    ...props.searchParams,
+    searchId: uuidv4()
+  }
+
+  const results = await getResultsWithAvailability(searchParams)
 
   if (!results) return <p>No results</p>
 
   return (
-    <HotelsListContainer initialResults={results} searchParams={props.searchParams} />
+    <HotelsListContainer initialResults={results} searchParams={searchParams} />
   )
 }
 
@@ -113,15 +106,21 @@ function Fallback() {
       {[1,2,3,4,5,6].map((i: number) => (
         <div className="my-3 p-2 border" key={i}>
           <div className="grid grid-cols-4 gap-4">
-            <div className="h-44 w-60 border">
-              Loading...
+            <div className="h-44 w-60">
+              <div role="status" className="animate-pulse">
+                <div className="h-44 bg-gray-200 dark:bg-gray-700 w-full" />
+                <span className="sr-only">Loading...</span>
+              </div>
             </div>
             <div className="col-span-3">
-              <h3 className="text-lg">Loading...</h3>
-              <div className="text-xs">Loading...</div>
-              <div className="text-xs py-3">Loading...</div>
-              <div className="text-xs py-3">Loading...</div>
-              <div className="text-xs py-3">Loading...</div>
+              <div role="status" className="animate-pulse">
+                <div className="h-6 bg-gray-200 dark:bg-gray-700 w-6/12 mb-4" />
+                <div className="h-3 bg-gray-200 dark:bg-gray-700 w-4/12 mb-4" />
+                <div className="h-7 bg-gray-200 dark:bg-gray-700 my-2 w-full" />
+                <div className="h-7 bg-gray-200 dark:bg-gray-700 my-2 w-full" />
+                <div className="h-7 bg-gray-200 dark:bg-gray-700 my-2 w-full" />
+                <span className="sr-only">Loading...</span>
+              </div>
             </div>
           </div>
         </div>

@@ -27,15 +27,18 @@ function createSearchRequestString(
     rooms: searchParams.rooms,
     pageSize: searchParams.pageSize,
     anonymousId: 'anonymous-id',
-    searchId: 'search-id',
+    searchId: searchParams.searchId,
     language: 'en',
-    currency: 'USD',
+    currency: 'EUR',
+    countryCode: 'NL',
     brand: 'vio',
     profileId: 'findhotel-website',
     deviceType: 'desktop',
+    cugDeals: 'signed_in,offline,sensitive,prime,fsf',
+    tier: 'plus',
     offset: searchParams.offset ?? 0,
-    variations: 'sapi4eva-hso-ctr-b',
-    facilities: typeof searchParams.facilities === 'object' ? searchParams.facilities?.join(',') : searchParams.facilities
+    facilities: typeof searchParams.facilities === 'object' ? searchParams.facilities?.join(',') : searchParams.facilities,
+    //variations: 'sapi4eva-hso-ctr-b,sapi4eva-imagedb-b,sapi4eva-own-place-hotel-mapping-2-b,sapi4eva-preheat-anchor-offers-b,sapi4eva-room-bundles-b,sapi4eva-price-range-v2-b,'
   })
 
   return new URLSearchParams(urlParameters).toString()
@@ -44,8 +47,6 @@ function createSearchRequestString(
 
 export async function getSearchResults(searchParams: SearchParams) {
   const requestString = createSearchRequestString(searchParams)
-
-  console.log(requestString)
 
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_HOSTNAME}/search?${requestString}`)
  
@@ -66,13 +67,15 @@ function createOffersRequestString(
     checkOut: searchParams.checkOut,
     rooms: searchParams.rooms,
     anonymousId: 'anonymous-id',
-    searchId: 'search-id',
+    searchId: searchParams.searchId,
     clientRequestId: 'client-request-id',
     language: 'en',
-    currency: 'USD',
+    currency: 'EUR',
+    countryCode: 'NL',
     brand: 'vio',
     deviceType: 'desktop',
-    cugDeals: 'signed_in,offline,sensitive,prime,fsf'
+    cugDeals: 'signed_in,offline,sensitive,prime,fsf',
+    tier: 'plus'
   })
 
   return new URLSearchParams(urlParameters).toString()
@@ -106,14 +109,17 @@ function createAvailabilityRequestString(
     checkOut: searchParams.checkOut,
     rooms: searchParams.rooms,
     anonymousId: 'next-js-vio-test-id',
-    searchId: 'next-js-vio-test-id',
+    searchId: searchParams.searchId,
     clientRequestId: 'next-js-vio-test-request-id',
     locale: 'en',
-    currency: 'USD',
+    currency: 'EUR',
     countryCode: 'NL',
-    userAgent: 'next-js-vio-test',
+    userAgent: 'Mozilla%2F5.0+%28Macintosh%3B+Intel+Mac+OS+X+10_15_7%29+AppleWebKit%2F537.36+%28KHTML%2C+like+Gecko%29+Chrome%2F114.0.0.0+Safari%2F537.36',
     deviceType: 'desktop',
     offersCount: 3,
+    roomLimit: 2,
+    tier: 'plus',
+    cugDeals: 'signed_in,offline,sensitive,prime,fsf',
     rand: new Date().getTime(),
   })
 

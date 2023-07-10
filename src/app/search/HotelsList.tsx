@@ -40,10 +40,11 @@ export function HotelsList(props: ListProps) {
                 <h3 className="text-lg">{hotel.hotelName}</h3>
                 <div className="text-xs">{hotel.placeDisplayName}</div>
                 {!props.isComplete && !offerEntity?.offers.length && (
-                  <div>
-                    <div className="text-xs py-3">Loading...</div>
-                    <div className="text-xs py-3">Loading...</div>
-                    <div className="text-xs py-3">Loading...</div>
+                  <div role="status" className="max-w-sm animate-pulse">
+                    <div className="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-48 mb-4" />
+                    <div className="h-2 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[360px] mb-2.5" />
+                    <div className="h-2 bg-gray-200 rounded-full dark:bg-gray-700 mb-2.5" />
+                    <span className="sr-only">Loading...</span>
                   </div>
                 )}
                 {offerEntity?.offers.length && <OffersList offerEntity={offerEntity} />}
@@ -55,6 +56,8 @@ export function HotelsList(props: ListProps) {
     </>
   )
 }
+
+
 
 interface ContainerProps {
   initialResults:  Record<string, any>
