@@ -42,10 +42,24 @@ interface AvailabilityResponse {
 }
 
 async function getResultsWithAvailability(searchParams: SearchParams) {
-  const staticResults = await getSearchResults({...searchParams, pageSize: 500}) ?? {}
+  const staticResults = await getSearchResults({...searchParams, pageSize: 250}) ?? {}
+
+  let tagsCount = 0
+  let hotelIdsWithTags: string[] = []
+
+  if (searchParams.rooms === '2') {
+    staticResults.hotelIds.forEach((id: string) => {
+      const hotel = staticResults.hotelEntities[id]
+      hotelIdsWithTags.push(id)
+
+      if (hotel?.tags?.length) {
+        tagsCount++
+      }
+    })
+  }
 
   const availability = await getAvailability({
-    hotelIds: staticResults.hotelIds,
+    hotelIds: tagsCount > 20 ? hotelIdsWithTags.slice(0, 25) : staticResults.hotelIds,
     ...searchParams
   }) as unknown as AvailabilityResponse
 
