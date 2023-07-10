@@ -8,6 +8,7 @@ export interface SearchParams {
   facilities?: number | number[]
   useOffers: string
   searchId?: string
+  attributes?: string
 }
 
 export interface Offer {

@@ -1,3 +1,5 @@
+import { Metadata, ResolvingMetadata } from 'next';
+
 import {Suspense} from 'react'
 import {v4 as uuidv4} from 'uuid'
 
@@ -82,6 +84,16 @@ async function SearchResults(props: Props) {
   return (
     <HotelsListContainer initialResults={results} searchParams={searchParams} />
   )
+}
+
+// set dynamic metadata
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const staticResults = await getSearchResults({...searchParams, attributes: 'anchor'}) ?? {}
+
+  return {
+    title: staticResults.anchor?.placeName,
+    description: staticResults.anchor?.placeADN,
+  };
 }
 
 async function SearchResultsWithOffers(props: Props) {
