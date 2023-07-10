@@ -29,7 +29,7 @@ function getAvailability(params: AvailabilityParams) {
       } else {
         setTimeout(() => {
           poll()
-        }, 1000);
+        }, 700);
       }
     }
 
