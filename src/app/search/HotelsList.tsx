@@ -1,17 +1,17 @@
 'use client'
 
 import Image from 'next/image'
-import {useState} from 'react'
+import {useCallback, useState, useEffect} from 'react'
 
 import {SearchParams, Hotel, OfferEntity} from './types'
 import OffersList from './OffersList'
 import {useOffers} from './useOffers'
-
+import {getOffers} from './apis'
 
 interface ListProps {
   hotelEntities: Record<string, Hotel>
   hotelIds: string[]
-  offers: OfferEntity[]
+  offerEntities:  Record<string, OfferEntity>
   isComplete: boolean
 }
 
@@ -20,7 +20,7 @@ export function HotelsList(props: ListProps) {
     <>
       {props.hotelIds.map(hotelId => {
         const hotel = props.hotelEntities[hotelId]
-        const offerEntity = props.offers?.find(res => res.id === hotel.objectID)
+        const offerEntity = props.offerEntities[hotelId]
 
         return (
           <div className="my-3 p-2 border" key={hotel.objectID}>
@@ -40,10 +40,10 @@ export function HotelsList(props: ListProps) {
                 <h3 className="text-lg">{hotel.hotelName}</h3>
                 <div className="text-xs">{hotel.placeDisplayName}</div>
                 {!props.isComplete && !offerEntity?.offers.length && (
-                  <div role="status" className="max-w-sm animate-pulse">
-                    <div className="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-48 mb-4" />
-                    <div className="h-2 bg-gray-200 rounded-full dark:bg-gray-700 max-w-[360px] mb-2.5" />
-                    <div className="h-2 bg-gray-200 rounded-full dark:bg-gray-700 mb-2.5" />
+                  <div role="status" className="animate-pulse">
+                    <div className="h-7 bg-gray-200 dark:bg-gray-700 my-2 w-full" />
+                    <div className="h-7 bg-gray-200 dark:bg-gray-700 my-2 w-full" />
+                    <div className="h-7 bg-gray-200 dark:bg-gray-700 my-2 w-full" />
                     <span className="sr-only">Loading...</span>
                   </div>
                 )}
@@ -57,26 +57,140 @@ export function HotelsList(props: ListProps) {
   )
 }
 
+interface Results {
+  hotelIds: string[]
+  hotelEntities: Record<string, Hotel>
+  offerEntities: Record<string, OfferEntity>
+  hasMoreResults: boolean
+}
 
+export async function getData(searchParams: SearchParams): Promise<Results> {
+  const requestString = new URLSearchParams(searchParams as unknown as URLSearchParams).toString()
+
+  const requestUrl = `/search/api?${requestString}`
+
+  const res = await fetch(requestUrl)
+ 
+  if (!res.ok) {
+    throw new Error('Failed to fetch data')
+  }
+ 
+  return res.json()
+}
 
 interface ContainerProps {
-  initialResults:  Record<string, any>
+  initialResults: {
+    hotelIds: string[]
+    hotelEntities: Record<string, Hotel>
+    offerEntities: Record<string, OfferEntity>
+    hasMoreResults: boolean
+  }
   searchParams: SearchParams
 }
 
-export default function HotelsListContainer(props: ContainerProps) {
-  const [hotelIdsPages, setHotelIdsPages] = useState([props.initialResults.hotelIds])
-  const [hotelEntities, setHotelEntities] = useState({...props.initialResults.hotelEntities ?? {}})
-  const {offers, isComplete} = useOffers(hotelIdsPages[0], props.searchParams, props.initialResults.offerEntities)
+export default function HotelsListContainer({initialResults, searchParams}: ContainerProps) {
+  const [isComplete, setIsComplete] = useState(false)
+  const [page, setPage] = useState(1)
+  const [hasMoreResults, setHasMoreResults] = useState(initialResults.hasMoreResults)
+  const [hotelIds, setHotelIds] = useState(initialResults.hotelIds)
+  const [hotelEntities, setHotelEntities] = useState(initialResults.hotelEntities)
+  const [offerEntities, setOfferEntities] = useState(initialResults.offerEntities)
 
-  const hotelIds = hotelIdsPages.flatMap(i => i)
+  useEffect(() => {
+    async function loadOffers() {
+      setIsComplete(false)
+
+      const offers = await getOffers(hotelIds, searchParams)
+
+      const offerEntities: Record<string, OfferEntity> = {}
+
+      offers.results?.forEach((offerEntity) => {
+        offerEntities[offerEntity.id] = offerEntity
+      })
+
+      setOfferEntities((existingOfferEntities) => ({
+        ...existingOfferEntities,
+        ...offerEntities
+      }))
+
+      setIsComplete(true)
+    }
+
+    void loadOffers()
+  }, [])
+
+  useEffect(() => {
+    async function loadHotels() {
+      setIsComplete(false)
+
+      const offset = 20 * (page - 1)
+
+      const nextPage = await getData({...searchParams, offset })
+
+      setHotelIds((existingHotelIds) => {
+        const hotelIds = [
+          ...existingHotelIds,
+          ...nextPage.hotelIds
+        ]
+
+        return [...new Set(hotelIds)]
+      })
+  
+      setHotelEntities((pages) => ({
+        ...pages,
+        ...nextPage.hotelEntities
+      }))
+  
+      setOfferEntities((existingOfferEntities) => ({
+        ...existingOfferEntities,
+        ...nextPage.offerEntities
+      }))
+
+      setHasMoreResults(nextPage.hasMoreResults)
+
+      const offers = await getOffers(hotelIds.slice(offset - 20, offset), searchParams)
+
+      const offerEntities: Record<string, OfferEntity> = {}
+
+      offers.results?.forEach((offerEntity) => {
+        offerEntities[offerEntity.id] = offerEntity
+      })
+
+      setOfferEntities((existingOfferEntities) => ({
+        ...existingOfferEntities,
+        ...offerEntities
+      }))
+
+      setIsComplete(true)
+    }
+
+    if (page > 1) {
+      void loadHotels()
+    }
+  }, [page, searchParams])
+
+  const handleLoadMore = useCallback(() => {
+    setPage((page) => page + 1)
+  }, [setPage])
 
   return (
-    <HotelsList
-      isComplete={isComplete}
-      hotelIds={hotelIds}
-      hotelEntities={hotelEntities}
-      offers={offers}
-    />
+    <>
+      <HotelsList
+        isComplete={isComplete}
+        hotelIds={hotelIds}
+        hotelEntities={hotelEntities}
+        offerEntities={offerEntities}
+      />
+      <div className="text-center p-4">
+        {hasMoreResults && (
+          <button className="py-2 px-4 bg-blue-600 rounded text-white" onClick={handleLoadMore}>
+            {isComplete ? 'Load More' : 'Loading...'}
+          </button>
+        )}
+        {!hasMoreResults && (
+          <div className="text-lg text-center">There are no more results for your search</div>
+        )}
+      </div>
+    </>
   )
 }

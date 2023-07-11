@@ -1,13 +1,16 @@
-export interface SearchParams {
+export interface UserRequestParams {
   placeId: string
   checkIn: string
   checkOut: string
   rooms: string
-  offset?: number
-  pageSize?: number
+  offset? :number
   facilities?: number | number[]
-  useOffers: string
-  searchId?: string
+}
+
+export interface SearchParams extends UserRequestParams {
+  offset: number
+  searchId: string
+  pageSize?: number
   attributes?: string
 }
 

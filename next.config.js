@@ -18,6 +18,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**.travelapi.com'
       },
+      {
+        protocol: 'https',
+        hostname: '**.bstatic.com'
+      },
     ],
   },
 }

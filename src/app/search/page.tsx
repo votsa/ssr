@@ -1,131 +1,31 @@
-import { Metadata, ResolvingMetadata } from 'next';
+import { Metadata } from 'next';
 
 import {Suspense} from 'react'
 import {v4 as uuidv4} from 'uuid'
 
-import HotelsListContainer, {HotelsList} from './HotelsList'
-import {getSearchResults, getOffers, availabilitySearch, AvailabilityParams} from './api'
-import {SearchParams, OfferEntity, Hotel} from './types'
+import HotelsListContainer from './HotelsList'
+import {getSearchResults, getResultsWithAvailability, requestToSearchParams} from './apis'
+import {SearchParams} from './types'
 
 interface Props {
   searchParams: SearchParams
 }
 
-const CLIENT_PAGE_SIZE = 20
-
-function getAvailability(params: AvailabilityParams) {
-  let pollsCount = 0
-
-  return new Promise((resolve) => {
-    async function poll() {
-      const response = await availabilitySearch(params)
-
-      pollsCount++
-
-      if (pollsCount >= 2 || response?.status.complete) {
-        pollsCount = 0
-
-        resolve(response)
-      } else {
-        setTimeout(() => {
-          poll()
-        }, 700);
-      }
-    }
-
-    poll()
-  })
-}
-
-interface AvailabilityResponse {
-  results: OfferEntity[]
-}
-
-async function getResultsWithAvailability(searchParams: SearchParams) {
-  const staticResults = await getSearchResults({...searchParams, pageSize: 250}) ?? {}
-
-  let tagsCount = 0
-  let hotelIdsWithTags: string[] = []
-
-  if (searchParams.rooms === '2') {
-    staticResults.hotelIds.forEach((id: string) => {
-      const hotel = staticResults.hotelEntities[id]
-      hotelIdsWithTags.push(id)
-
-      if (hotel?.tags?.length) {
-        tagsCount++
-      }
-    })
-  }
-
-  const availability = await getAvailability({
-    hotelIds: tagsCount > 20 ? hotelIdsWithTags.slice(0, 25) : staticResults.hotelIds,
-    ...searchParams
-  }) as unknown as AvailabilityResponse
-
-  const availableHotelEntities: Record<string, Hotel> = {}
-
-  const availableHotelIds = availability.results
-    .filter((offerEntity) => offerEntity.offers.length !== 0)
-    .map((offerEntity) => {
-      availableHotelEntities[offerEntity.id] = staticResults.hotelEntities[offerEntity.id]
-
-      return offerEntity.id
-    })
-    .slice(0, CLIENT_PAGE_SIZE)
-
-  const offerEntities = availability.results?.filter(
-    (offerEntity) => availableHotelIds.includes(offerEntity.id)
-  )
-
-  return {
-    hotelEntities: staticResults.hotelEntities,
-    offerEntities,
-    hotelIds: availableHotelIds
-  }
-}
-
-async function SearchResults(props: Props) {
-    const searchParams = {
-    ...props.searchParams,
-    searchId: uuidv4()
-  }
-
-  const results = await getResultsWithAvailability(searchParams)
-
-  if (!results) return <p>No results</p>
-
-  return (
-    <HotelsListContainer initialResults={results} searchParams={searchParams} />
-  )
-}
-
-// set dynamic metadata
+/**
+ * Set dynamic metadata
+ */
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const staticResults = await getSearchResults({...searchParams, attributes: 'anchor'}) ?? {}
 
   return {
     title: staticResults.anchor?.placeName,
     description: staticResults.anchor?.placeADN,
-  };
+  }
 }
 
-async function SearchResultsWithOffers(props: Props) {
-  const results = await getSearchResults(props.searchParams)
-  const offers = await getOffers(results.hotelIds, props.searchParams)
-
-  if (!results) return <p>No results</p>
-
-  return (
-    <HotelsList
-      hotelIds={results.hotelIds}
-      hotelEntities={results.hotelEntities}
-      offers={offers.results}
-      isComplete={true}
-    />
-  )
-}
-
+/**
+ * Loader
+ */
 function Fallback() {
   return (
     <>
@@ -155,12 +55,28 @@ function Fallback() {
   )
 }
 
-export default function Search(props: Props) {
+async function SearchResults(props: Props) {
+  const searchId = uuidv4()
+
+  const searchParams = requestToSearchParams(props.searchParams, searchId)
+
+  const results = await getResultsWithAvailability(searchParams)
+
+  if (!results || !results.hotelIds.length) return <div className="text-lg text-center">No results found</div>
+
+  return (
+    <HotelsListContainer initialResults={results} searchParams={searchParams} />
+  )
+}
+
+/**
+ * Search page loader
+ */
+export default function SearchPageLoader(props: Props) {
   return (
     <main className="flex min-h-screen flex-col items-left p-3">
       <Suspense fallback={<Fallback />}>
-        {props.searchParams.useOffers === '1' && <SearchResultsWithOffers searchParams={props.searchParams} />}
-        {props.searchParams.useOffers !== '1' && <SearchResults searchParams={props.searchParams} />}
+        <SearchResults searchParams={props.searchParams} />
       </Suspense>
     </main>
   )

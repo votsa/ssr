@@ -1,12 +1,16 @@
 'use client'
 
 import {useEffect, useState} from 'react'
-import {getOffers} from './api'
+import {getOffers} from './apis'
 import {SearchParams} from './types'
 import {OfferEntity} from './types'
 
-export function useOffers(hotelIds: string[], searchParams: SearchParams, initialOfferEntities: OfferEntity[] = []) {
-  const [offers, setOffers] = useState<OfferEntity[]>(initialOfferEntities)
+export function useOffers(
+  hotelIds: string[],
+  initialOfferEntities: Record<string, OfferEntity>,
+  searchParams: SearchParams
+) {
+  const [offerEntities, setOffers] = useState<Record<string, OfferEntity>>(initialOfferEntities)
   const [isComplete, setIsComplete] = useState(false)
 
   useEffect(() => {
@@ -14,11 +18,16 @@ export function useOffers(hotelIds: string[], searchParams: SearchParams, initia
       setIsComplete(false)
 
       const offers = await getOffers(hotelIds, searchParams)
+      const offerEntities: Record<string, OfferEntity> = {}
 
-      setOffers((existingOffers) => {
-        //return [...existingOffers, ...offers.results]
-        return offers.results
+      offers.results?.forEach((offerEntity) => {
+        offerEntities[offerEntity.id] = offerEntity
       })
+
+      setOffers((existingOfferEntities) => ({
+        ...existingOfferEntities,
+        ...offerEntities
+      }))
 
       setIsComplete(true)
     }
@@ -27,7 +36,9 @@ export function useOffers(hotelIds: string[], searchParams: SearchParams, initia
   }, [hotelIds, setOffers, searchParams])
 
   return {
-    offers,
-    isComplete
+    offerEntities,
+    setOffers,
+    isComplete,
+    setIsComplete
   }
 }
