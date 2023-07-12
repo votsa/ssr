@@ -34,4 +34,5 @@ export interface Hotel {
   hotelName: string
   placeDisplayName: string
   imageURIs: string[]
+  starRating: number
 }

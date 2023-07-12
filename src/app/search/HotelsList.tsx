@@ -18,39 +18,58 @@ interface ListProps {
 export function HotelsList(props: ListProps) {
   return (
     <>
-      {props.hotelIds.map(hotelId => {
+      {props.hotelIds.map((hotelId, i) => {
         const hotel = props.hotelEntities[hotelId]
         const offerEntity = props.offerEntities[hotelId]
 
         return (
-          <div className="my-3 p-2 border" key={hotel.objectID}>
-            <div className="grid grid-cols-4 gap-4">
-              <div>
-                {hotel.imageURIs?.[0] &&
-                  <Image
-                    src={hotel.imageURIs?.[0]}
-                    alt="Vercel Logo"
-                    className="dark:invert"
-                    width={280}
-                    height={180}
-                  />
-                }
-              </div>
-              <div className="col-span-3">
-                <h3 className="text-lg">{hotel.objectID} : {hotel.hotelName}</h3>
-                <div className="text-xs">{hotel.placeDisplayName}</div>
-                {!props.isComplete && !offerEntity?.offers.length && (
-                  <div role="status" className="animate-pulse">
-                    <div className="h-7 bg-gray-200 dark:bg-gray-700 my-2 w-full" />
-                    <div className="h-7 bg-gray-200 dark:bg-gray-700 my-2 w-full" />
-                    <div className="h-7 bg-gray-200 dark:bg-gray-700 my-2 w-full" />
-                    <span className="sr-only">Loading...</span>
+          <>
+            <div key={hotel.objectID} className="mx-auto w-full my-5 flex max-w-xs flex-col md:max-w-full md:flex-row md:items-start md:text-left">
+              <div className="mb-4 md:mr-6 md:mb-0 md:w-96">
+                <div className="rounded-lg overflow-hidden">
+                  <div className="h-48 bg-gray-200 dark:bg-gray-700 w-full overflow-hidden">
+                    {hotel.imageURIs?.length &&
+                      <Image
+                        src={hotel.imageURIs?.[0]}
+                        alt={hotel.hotelName}
+                        className="object-cover"
+                        width={384}
+                        height={192}
+                      />
+                    }
                   </div>
-                )}
+                  <div className="flex items-center space-x-1 pt-1">
+                    {hotel.imageURIs?.slice(1,4).map((url, n) => (
+                      <div key={n} className="h-14 bg-gray-200 dark:bg-gray-700 w-24">
+                        <Image
+                          key={n}
+                          src={url}
+                          alt={hotel.hotelName}
+                          className="object-cover"
+                          width={96}
+                          height={59}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="w-full">
+                <div className="flex items-center space-x-1 my-1">
+                  {Array(hotel.starRating).fill(1).map((i, n) => (
+                    <svg key={n} className="w-4 h-4 text-yellow-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 20">
+                      <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z" />
+                    </svg>
+                  ))}
+                </div>
+
+                <div className="text-xl font-medium">{hotel.hotelName}</div>
+                <div className="mb-4 text-sm">{hotel.placeDisplayName}</div> 
                 {offerEntity?.offers.length && <OffersList offerEntity={offerEntity} />}
               </div>
             </div>
-          </div>
+            <div className="border-b" />
+          </>
         )
       })}
     </>
