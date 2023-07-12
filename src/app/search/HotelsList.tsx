@@ -1,12 +1,10 @@
 'use client'
 
 import Image from 'next/image'
-import {useCallback, useState, useEffect} from 'react'
 
-import {SearchParams, Hotel, OfferEntity} from './types'
 import OffersList from './OffersList'
-import {useOffers} from './useOffers'
-import {getOffers} from './apis'
+import {useSearch} from './useSearch'
+import {SearchParams, Hotel, OfferEntity} from './types'
 
 interface ListProps {
   hotelEntities: Record<string, Hotel>
@@ -18,7 +16,7 @@ interface ListProps {
 export function HotelsList(props: ListProps) {
   return (
     <>
-      {props.hotelIds.map((hotelId, i) => {
+      {props.hotelIds.map((hotelId) => {
         const hotel = props.hotelEntities[hotelId]
         const offerEntity = props.offerEntities[hotelId]
 
@@ -61,7 +59,6 @@ export function HotelsList(props: ListProps) {
                     </svg>
                   ))}
                 </div>
-
                 <div className="text-xl font-medium">{hotel.hotelName}</div>
                 <div className="mb-3 text-sm">{hotel.placeDisplayName}</div> 
                 {offerEntity?.offers.length && <OffersList offerEntity={offerEntity} />}
@@ -75,28 +72,7 @@ export function HotelsList(props: ListProps) {
   )
 }
 
-interface Results {
-  hotelIds: string[]
-  hotelEntities: Record<string, Hotel>
-  offerEntities: Record<string, OfferEntity>
-  hasMoreResults: boolean
-}
-
-export async function getData(searchParams: SearchParams): Promise<Results> {
-  const requestString = new URLSearchParams(searchParams as unknown as URLSearchParams).toString()
-
-  const requestUrl = `/search/api?${requestString}`
-
-  const res = await fetch(requestUrl)
- 
-  if (!res.ok) {
-    throw new Error('Failed to fetch data')
-  }
- 
-  return res.json()
-}
-
-interface ContainerProps {
+interface Props {
   initialResults: {
     hotelIds: string[]
     hotelEntities: Record<string, Hotel>
@@ -106,102 +82,27 @@ interface ContainerProps {
   searchParams: SearchParams
 }
 
-export default function HotelsListContainer({initialResults, searchParams}: ContainerProps) {
-  const [isComplete, setIsComplete] = useState(false)
-  const [page, setPage] = useState(1)
-  const [hasMoreResults, setHasMoreResults] = useState(initialResults.hasMoreResults)
-  const [hotelIds, setHotelIds] = useState(initialResults.hotelIds)
-  const [hotelEntities, setHotelEntities] = useState(initialResults.hotelEntities)
-  const [offerEntities, setOfferEntities] = useState(initialResults.offerEntities)
-
-  useEffect(() => {
-    async function loadOffers() {
-      setIsComplete(false)
-
-      const offers = await getOffers(hotelIds, searchParams)
-
-      const offerEntities: Record<string, OfferEntity> = {}
-
-      offers.results?.forEach((offerEntity) => {
-        offerEntities[offerEntity.id] = offerEntity
-      })
-
-      setOfferEntities((existingOfferEntities) => ({
-        ...existingOfferEntities,
-        ...offerEntities
-      }))
-
-      setIsComplete(true)
-    }
-
-    void loadOffers()
-  }, [])
-
-  useEffect(() => {
-    async function loadHotels() {
-      setIsComplete(false)
-
-      const offset = 20 * page
-
-      const nextPage = await getData({...searchParams, offset })
-
-      setHotelIds((existingHotelIds) => {
-        const hotelIds = [
-          ...existingHotelIds,
-          ...nextPage.hotelIds
-        ]
-
-        return [...new Set(hotelIds)]
-      })
-  
-      setHotelEntities((pages) => ({
-        ...pages,
-        ...nextPage.hotelEntities
-      }))
-  
-      setOfferEntities((existingOfferEntities) => ({
-        ...existingOfferEntities,
-        ...nextPage.offerEntities
-      }))
-
-      setHasMoreResults(nextPage.hasMoreResults)
-
-      const offers = await getOffers(nextPage.hotelIds, searchParams)
-
-      const offerEntities: Record<string, OfferEntity> = {}
-
-      offers.results?.forEach((offerEntity) => {
-        offerEntities[offerEntity.id] = offerEntity
-      })
-
-      setOfferEntities((existingOfferEntities) => ({
-        ...existingOfferEntities,
-        ...offerEntities
-      }))
-
-      setIsComplete(true)
-    }
-
-    if (page > 1) {
-      void loadHotels()
-    }
-  }, [page, searchParams])
-
-  const handleLoadMore = useCallback(() => {
-    setPage((page) => page + 1)
-  }, [setPage])
+export function HotelsListContainer(props: Props) {
+  const {
+    isComplete,
+    hasMoreResults,
+    hotelEntities,
+    offerEntities,
+    hotelIds,
+    onLoadMore
+  } = useSearch(props.searchParams, props.initialResults)
 
   return (
     <>
       <HotelsList
         isComplete={isComplete}
-        hotelIds={hotelIds.slice(0, (20 * page))}
+        hotelIds={hotelIds}
         hotelEntities={hotelEntities}
         offerEntities={offerEntities}
       />
       <div className="text-center p-4">
         {hasMoreResults && (
-          <button className="py-2 px-4 bg-blue-600 rounded text-white" onClick={handleLoadMore}>
+          <button className="py-2 px-4 bg-blue-600 rounded text-white" onClick={onLoadMore}>
             {isComplete ? 'Load More' : 'Loading...'}
           </button>
         )}
@@ -210,5 +111,40 @@ export default function HotelsListContainer({initialResults, searchParams}: Cont
         )}
       </div>
     </>
+  )
+}
+
+/**
+ * Loader
+ */
+export function HotelsListFallback() {
+  return (
+    <>
+      {[1,2,3,4,5,6].map((i: number) => (
+        <div key={i}>
+          <div className="w-full my-5 flex max-w-full flex-col md:max-w-full md:flex-row md:items-start md:text-left">
+            <div className="mb-4 md:mr-6 md:mb-0 md:w-96">
+              <div className="rounded-lg overflow-hidden animate-pulse" role="status">
+                <div className="h-48 bg-gray-200 dark:bg-gray-700 w-full" />
+                <div className="flex items-center space-x-1 pt-1" >
+                  {[1,2,3].map((i, n) => (
+                    <div key={n} className="h-14 bg-gray-200 dark:bg-gray-700 w-24" />
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="w-full animate-pulse" role="status">
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 w-2/12 mb-2" />
+              <div className="h-6 bg-gray-200 dark:bg-gray-700 w-7/12 mb-2" />
+              <div className="h-3 bg-gray-200 dark:bg-gray-700 w-4/12 mb-7" />
+              {[1,2,3].map((i, n) => (
+                <div key={n} className="h-8 bg-gray-200 dark:bg-gray-700 my-4 w-full" />
+              ))}
+            </div>
+          </div>
+          <div className="border-b" />
+        </div>
+      ))}
+   </>
   )
 }

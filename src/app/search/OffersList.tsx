@@ -13,12 +13,15 @@ export default function OffersList({offerEntity}: Props) {
     <>
       {offerEntity.offers.map((offer, n) => {
         const room = offerEntity.rooms[offer.roomID]
+
         return (
           <div key={offer.id}>
             {n > 0 && <div className="border-b" />}
-            <a href={offer.url} target="_blank" className="flex py-4">
+            <a href={offer.url} target="_blank" className="flex py-4 align-middle">
               <div className="w-20">{offer.providerCode}</div>
-              <div className="flex-1 text-xs">{room?.name}</div>
+              <div className="flex-1">
+                <span className="h-8 text-xs">{room?.name}</span>
+              </div>
               <div className="text-right w-48">
                 <span>{offer.rate?.base?.toFixed(0)}</span>
                 <span className="mx-1">{offer.currency}</span>
