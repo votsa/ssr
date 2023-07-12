@@ -23,8 +23,8 @@ export function HotelsList(props: ListProps) {
         const offerEntity = props.offerEntities[hotelId]
 
         return (
-          <>
-            <div key={hotel.objectID} className="mx-auto w-full my-5 flex max-w-xs flex-col md:max-w-full md:flex-row md:items-start md:text-left">
+          <div key={hotel.objectID}>
+            <div className="mx-auto w-full my-5 flex max-w-xs flex-col md:max-w-full md:flex-row md:items-start md:text-left">
               <div className="mb-4 md:mr-6 md:mb-0 md:w-96">
                 <div className="rounded-lg overflow-hidden">
                   <div className="h-48 bg-gray-200 dark:bg-gray-700 w-full overflow-hidden">
@@ -42,7 +42,6 @@ export function HotelsList(props: ListProps) {
                     {hotel.imageURIs?.slice(1,4).map((url, n) => (
                       <div key={n} className="h-14 bg-gray-200 dark:bg-gray-700 w-24">
                         <Image
-                          key={n}
                           src={url}
                           alt={hotel.hotelName}
                           className="object-cover"
@@ -69,7 +68,7 @@ export function HotelsList(props: ListProps) {
               </div>
             </div>
             <div className="border-b" />
-          </>
+          </div>
         )
       })}
     </>
@@ -196,7 +195,7 @@ export default function HotelsListContainer({initialResults, searchParams}: Cont
     <>
       <HotelsList
         isComplete={isComplete}
-        hotelIds={hotelIds}
+        hotelIds={hotelIds.slice(0, (20 * page))}
         hotelEntities={hotelEntities}
         offerEntities={offerEntities}
       />

@@ -160,9 +160,6 @@ export async function availabilitySearch(searchParams: AvailabilityParams) {
   return response.json()
 }
 
-const CLIENT_PAGE_SIZE = 20
-const MIN_REQUEST_SIZE = CLIENT_PAGE_SIZE + 5
-
 interface AvailabilityResponse {
   results: OfferEntity[]
 }
@@ -202,6 +199,9 @@ function createLogger() {
   }
 }
 
+const CLIENT_PAGE_OFFSET = 5
+const CLIENT_PAGE_SIZE = 40
+
 export async function getResultsWithAvailability(params: SearchParams) {
   const log = createLogger()
 
@@ -233,7 +233,7 @@ export async function getResultsWithAvailability(params: SearchParams) {
   log('Hotels with tags count', hotelIdsWithTags.length)
 
   const hotelIds = hotelIdsWithTags.length > CLIENT_PAGE_SIZE
-    ? hotelIdsWithTags.slice(searchParams.offset, MIN_REQUEST_SIZE + searchParams.offset)
+    ? hotelIdsWithTags.slice(searchParams.offset, CLIENT_PAGE_SIZE + CLIENT_PAGE_OFFSET + searchParams.offset)
     : staticResults.hotelIds
 
   log('Availability requested')
