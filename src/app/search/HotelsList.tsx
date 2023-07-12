@@ -33,6 +33,7 @@ export function HotelsList(props: ListProps) {
                         className="object-cover"
                         width={384}
                         height={192}
+                        unoptimized
                       />
                     }
                   </div>
@@ -45,6 +46,7 @@ export function HotelsList(props: ListProps) {
                           className="object-cover"
                           width={96}
                           height={59}
+                          unoptimized
                         />
                       </div>
                     ))}
