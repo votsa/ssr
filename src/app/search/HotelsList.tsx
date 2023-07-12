@@ -24,7 +24,7 @@ export function HotelsList(props: ListProps) {
 
         return (
           <div key={hotel.objectID}>
-            <div className="mx-auto w-full my-5 flex max-w-xs flex-col md:max-w-full md:flex-row md:items-start md:text-left">
+            <div className="mx-auto w-full my-5 flex max-w-full flex-col md:max-w-full md:flex-row md:items-start md:text-left">
               <div className="mb-4 md:mr-6 md:mb-0 md:w-96">
                 <div className="rounded-lg overflow-hidden">
                   <div className="h-48 bg-gray-200 dark:bg-gray-700 w-full overflow-hidden">

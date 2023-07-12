@@ -16,6 +16,7 @@ export interface SearchParams extends UserRequestParams {
 
 export interface Offer {
   id: string
+  roomID: string
   providerCode: string
   currency: string
   url: string
@@ -24,9 +25,14 @@ export interface Offer {
   }
 }
 
+interface Room {
+  name: string
+}
+
 export interface OfferEntity {
   id: string
   offers: Offer[]
+  rooms: Record<string, Room>
 }
 
 export interface Hotel {
