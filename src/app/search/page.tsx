@@ -47,7 +47,7 @@ function Fallback() {
               <div className="h-6 bg-gray-200 dark:bg-gray-700 w-7/12 mb-2" />
               <div className="h-3 bg-gray-200 dark:bg-gray-700 w-4/12 mb-7" />
               {[1,2,3].map((i, n) => (
-                <div key={n} className="h-7 bg-gray-200 dark:bg-gray-700 my-2 w-full" />
+                <div key={n} className="h-8 bg-gray-200 dark:bg-gray-700 my-4 w-full" />
               ))}
             </div>
           </div>
