@@ -17,7 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <div className="px-7 py-6 border-b sticky top-0 bg-white">
+        <div className="px-7 py-6 border-b sticky top-0 bg-white z-50">
 
           <Image
             src=" https://www.vio.com/static/media/vio-logo.142636e625a9ec9028fe.svg"
