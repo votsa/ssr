@@ -63,7 +63,7 @@ export function HotelsList(props: ListProps) {
                 </div>
                 <div className="text-xl font-medium">{hotel.hotelName}</div>
                 <div className="mb-3 text-xs">{hotel.placeDisplayName}</div> 
-                {offerEntity?.offers.length && <OffersList offerEntity={offerEntity} />}
+                <OffersList offerEntity={offerEntity} />
               </div>
             </div>
             <div className="border-b" />
