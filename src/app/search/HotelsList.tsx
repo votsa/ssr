@@ -37,7 +37,7 @@ export function HotelsList(props: ListProps) {
                 }
               </div>
               <div className="col-span-3">
-                <h3 className="text-lg">{hotel.hotelName}</h3>
+                <h3 className="text-lg">{hotel.objectID} : {hotel.hotelName}</h3>
                 <div className="text-xs">{hotel.placeDisplayName}</div>
                 {!props.isComplete && !offerEntity?.offers.length && (
                   <div role="status" className="animate-pulse">
@@ -148,7 +148,7 @@ export default function HotelsListContainer({initialResults, searchParams}: Cont
 
       setHasMoreResults(nextPage.hasMoreResults)
 
-      const offers = await getOffers(hotelIds.slice(offset - 20, offset), searchParams)
+      const offers = await getOffers(nextPage.hotelIds, searchParams)
 
       const offerEntities: Record<string, OfferEntity> = {}
 

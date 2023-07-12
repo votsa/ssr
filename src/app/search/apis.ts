@@ -58,8 +58,6 @@ function createSearchRequestString(
 export async function getSearchResults(searchParams: SearchParams) {
   const requestString = createSearchRequestString(searchParams)
 
-  console.log('---------------------', requestString)
-
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_HOSTNAME}/search?${requestString}`)
  
   if (!res.ok) {
