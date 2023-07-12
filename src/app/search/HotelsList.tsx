@@ -62,7 +62,7 @@ export function HotelsList(props: ListProps) {
                   ))}
                 </div>
                 <div className="text-xl font-medium">{hotel.hotelName}</div>
-                <div className="mb-3 text-sm">{hotel.placeDisplayName}</div> 
+                <div className="mb-3 text-xs">{hotel.placeDisplayName}</div> 
                 {offerEntity?.offers.length && <OffersList offerEntity={offerEntity} />}
               </div>
             </div>
@@ -140,7 +140,7 @@ export function HotelsListFallback() {
               <div className="h-6 bg-gray-200 dark:bg-gray-700 w-7/12 mb-2" />
               <div className="h-3 bg-gray-200 dark:bg-gray-700 w-4/12 mb-7" />
               {[1,2,3].map((i, n) => (
-                <div key={n} className="h-8 bg-gray-200 dark:bg-gray-700 my-4 w-full" />
+                <div key={n} className="h-9 bg-gray-200 dark:bg-gray-700 my-4 w-full" />
               ))}
             </div>
           </div>

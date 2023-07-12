@@ -7,7 +7,13 @@ interface Props {
 }
 
 export default function OffersList({offerEntity}: Props) {
-  if (!offerEntity) return null
+  if (!offerEntity?.offers?.length) {
+    return (
+      <div className="p-6 bg-yellow-100 text-sm w-auto inline-block">
+        Unfortunately the hotel is unavailable at this moment
+      </div>
+    )
+  }
 
    return (
     <>
