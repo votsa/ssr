@@ -180,7 +180,7 @@ function getAvailability(params: AvailabilityParams): Promise<AvailabilityRespon
       } else {
         setTimeout(() => {
           poll()
-        }, 700);
+        }, 800);
       }
     }
 
@@ -200,12 +200,13 @@ function createLogger() {
 }
 
 const CLIENT_PAGE_OFFSET = 5
-const CLIENT_PAGE_SIZE = 40
 
 export async function getResultsWithAvailability(params: SearchParams) {
   const log = createLogger()
 
   const searchParams = requestToSearchParams(params, params.searchId)
+
+  const CLIENT_PAGE_SIZE = searchParams.offset === 0 ? 40 : 20
 
   log('Search start')
 

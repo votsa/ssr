@@ -141,7 +141,7 @@ export default function HotelsListContainer({initialResults, searchParams}: Cont
     async function loadHotels() {
       setIsComplete(false)
 
-      const offset = 20 * (page - 1)
+      const offset = 20 * page
 
       const nextPage = await getData({...searchParams, offset })
 
