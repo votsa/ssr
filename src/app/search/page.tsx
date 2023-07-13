@@ -1,4 +1,4 @@
-import { Metadata } from 'next';
+import {Metadata} from 'next';
 
 import {Suspense} from 'react'
 import {v4 as uuidv4} from 'uuid'
@@ -17,10 +17,18 @@ interface Props {
  */
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const anchorResponse = await getAnchor(searchParams) ?? {}
+  const images:string[] = []
+
+  if (anchorResponse.hotelEntities?.[0].imageURIs?.[0]) {
+    images.push(anchorResponse.hotelEntities?.[0].imageURIs?.[0])
+  }
 
   return {
     title: anchorResponse.anchor?.hotelName ?? anchorResponse.anchor?.placeName ?? 'Vio.com',
     description: anchorResponse.anchor?.placeDisplayName ?? anchorResponse.anchor?.placeADN,
+    openGraph: {
+      images
+    },
   }
 }
 
