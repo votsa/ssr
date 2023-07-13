@@ -4,6 +4,7 @@ import Image from 'next/image'
 
 import OffersList from './OffersList'
 import {useSearch} from './useSearch'
+import {imageProviderImgProxyFactory} from './imageProviderFactories'
 import {SearchParams, Hotel, OfferEntity} from './types'
 
 interface ListProps {
@@ -12,6 +13,36 @@ interface ListProps {
   offerEntities:  Record<string, OfferEntity>
   isComplete: boolean
 }
+
+export type SizeType =
+  | 'extraLarge'
+  | 'large'
+  | 'main'
+  | 'medium'
+  | 'small'
+  | 'mobileLarge'
+  | 'mobileMedium'
+  | 'mobileSmall'
+  | 'gridPrimary'
+  | 'gridSecondary'
+
+export const SIZES: Record<SizeType, [number, number]> = {
+  extraLarge: [740, 393],
+  large: [615, 340],
+  main: [292, 284],
+  medium: [59, 59],
+  small: [38, 38],
+  mobileLarge: [620, 176],
+  mobileMedium: [620, 152],
+  mobileSmall: [126, 152],
+  gridPrimary: [456, 330],
+  gridSecondary: [228, 162]
+}
+
+const imageProvider = imageProviderImgProxyFactory({
+  secret: process.env.NEXT_PUBLIC_IMAGE_RESIZE_SERVICE_SECRET as string,
+  url: process.env.NEXT_PUBLIC_IMAGE_RESIZE_SERVICE_URL as string
+})
 
 export function HotelsList(props: ListProps) {
   return (
@@ -28,7 +59,7 @@ export function HotelsList(props: ListProps) {
                   <div className="h-48 bg-gray-200 dark:bg-gray-700 w-full overflow-hidden">
                     {hotel.imageURIs?.length &&
                       <Image
-                        src={hotel.imageURIs?.[0]}
+                        src={imageProvider(hotel.imageURIs?.[0], SIZES['gridPrimary'])}
                         alt={hotel.hotelName}
                         className="object-cover"
                         width={384}
@@ -41,7 +72,7 @@ export function HotelsList(props: ListProps) {
                     {hotel.imageURIs?.slice(1,4).map((url, n) => (
                       <div key={n} className="h-14 bg-gray-200 dark:bg-gray-700 w-24">
                         <Image
-                          src={url}
+                          src={imageProvider(url, SIZES['gridSecondary'])}
                           alt={hotel.hotelName}
                           className="object-cover"
                           width={96}
