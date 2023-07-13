@@ -6,12 +6,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
   title: 'Vio.com',
-  description: 'Vio.com server side rendering',
-  openGraph: {
-    title:  'Vio.com',
-    description: 'Vio.com server side rendering',
-    images: ['https://partner.booking.com/sites/default/files/2021-01/partner-help.jpg']
-  },
+  description: 'Vio.com server side rendering'
 }
 
 export default function RootLayout({

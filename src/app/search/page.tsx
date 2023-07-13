@@ -48,13 +48,15 @@ const imageProvider = imageProviderImgProxyFactory({
  */
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const anchorResponse = await getAnchor(searchParams) ?? {}
-  const images:string[] = ['https://partner.booking.com/sites/default/files/2021-01/partner-help.jpg']
+  const images:string[] = []
 
-  //imageProvider(hotel.imageURIs?.[0], SIZES['gridPrimary'])
+  if (anchorResponse.anchorHotelId) {
+    const anchorImage = anchorResponse.hotelEntities?.[anchorResponse.anchorHotelId]?.imageURIs?.[0]
 
-  // if (anchorResponse.anchorHotelId && anchorResponse.hotelEntities?.[anchorResponse.anchorHotelId]?.imageURIs?.[0]) {
-  //   images.push(anchorResponse.hotelEntities?.[anchorResponse.anchorHotelId]?.imageURIs?.[0])
-  // }
+    if (anchorImage) {
+      images.push(imageProvider(anchorImage, SIZES['extraLarge']))
+    }
+  }
 
   return {
     title: anchorResponse.anchor?.hotelName ?? anchorResponse.anchor?.placeName ?? 'Vio.com',
