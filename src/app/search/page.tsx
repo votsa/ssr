@@ -19,8 +19,8 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const anchorResponse = await getAnchor(searchParams) ?? {}
   const images:string[] = []
 
-  if (anchorResponse.hotelEntities?.[0].imageURIs?.[0]) {
-    images.push(anchorResponse.hotelEntities?.[0].imageURIs?.[0])
+  if (anchorResponse.anchorHotelId && anchorResponse.hotelEntities?.[anchorResponse.anchorHotelId]?.imageURIs?.[0]) {
+    images.push(anchorResponse.hotelEntities?.[anchorResponse.anchorHotelId]?.imageURIs?.[0])
   }
 
   return {
