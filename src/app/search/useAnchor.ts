@@ -18,9 +18,9 @@ export const useAnchor = (props: Props) => {
     async function loadOffers() {
       setIsComplete(false)
 
-      const offers = await getOffers([hotel.objectID], props.searchParams)
+      const offersResponse = await getOffers([hotel.objectID], props.searchParams)
 
-      setOfferEntity(offers.results?.[0])
+      setOfferEntity(offersResponse.offerEntities[hotel.objectID])
 
       setIsComplete(true)
     }

@@ -1,22 +1,7 @@
-import {SearchParams, OfferEntity, Hotel, UserRequestParams} from './types'
 import {v4 as uuidv4} from 'uuid'
+import {removeEmpty} from '@/src/app/utils'
 
-/**
- * Removes empty properties from an object
- */
-export function removeEmpty(object: Record<string, any>): Record<string, any> {
-  return (
-    Object.entries(object)
-      .filter(([_, v]) => v !== null && v !== undefined)
-      .reduce(
-        (acc, [k, v]) => ({
-          ...acc,
-          [k]: v === new Object(v) ? removeEmpty(v) : v,
-        }),
-        {},
-      )
-  )
-}
+import {SearchParams, OfferEntity, Hotel, UserRequestParams, Offer} from './types'
 
 export function requestToSearchParams(requests: UserRequestParams, searchId: string): SearchParams {
   return {
@@ -118,25 +103,40 @@ function createOffersRequestString(
     rooms: searchParams.rooms,
     anonymousId: 'anonymous-id',
     searchId: searchParams.searchId,
-    clientRequestId: 'client-request-id',
     language: 'en',
     currency: 'EUR',
     countryCode: 'NL',
     brand: 'vio',
     deviceType: 'desktop',
     cugDeals: 'signed_in,offline,sensitive,prime,fsf',
-    tier: 'plus'
+    tier: 'plus',
+    clientRequestId: uuidv4()
   })
 
   return new URLSearchParams(urlParameters).toString()
 }
 
-interface OffersResponse {
-  results: OfferEntity[]
-  status: boolean
+function offersArrayToObject(results: OfferEntity[] = []) {
+  const offerEntities: Record<string, OfferEntity> = {}
+
+  results.forEach((offerEntity) => {
+    offerEntities[offerEntity.id] = offerEntity
+  })
+
+  return offerEntities
 }
 
-export async function getOffers(hotelIds: string[], searchParams: SearchParams): Promise<OffersResponse> {
+interface OffersResponse {
+  offerEntities: Record<string, OfferEntity>
+  status: {
+    complete: boolean
+  }
+}
+
+export async function getOffers(
+  hotelIds: string[],
+  searchParams: SearchParams
+): Promise<OffersResponse> {
   const requestString = createOffersRequestString(hotelIds, searchParams)
 
   const offersUrl = `${process.env.NEXT_PUBLIC_API_HOSTNAME}/offers?${requestString}`
@@ -147,7 +147,12 @@ export async function getOffers(hotelIds: string[], searchParams: SearchParams):
     throw new Error('Failed to fetch data')
   }
 
-  return res.json()
+  const response = await res.json()
+
+  return {
+    status: response.status,
+    offerEntities: offersArrayToObject(response.results)
+  }
 }
 
 export interface AvailabilityParams extends SearchParams {

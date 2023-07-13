@@ -39,17 +39,11 @@ export const useSearch = (searchParams: SearchParams, initialResults: Results) =
     async function loadOffers() {
       setIsComplete(false)
 
-      const offers = await getOffers(hotelIds, searchParams)
-
-      const offerEntities: Record<string, OfferEntity> = {}
-
-      offers.results?.forEach((offerEntity) => {
-        offerEntities[offerEntity.id] = offerEntity
-      })
+      const offersResponse = await getOffers(hotelIds, searchParams)
 
       setOfferEntities((existingOfferEntities) => ({
         ...existingOfferEntities,
-        ...offerEntities
+        ...offersResponse.offerEntities
       }))
 
       setIsComplete(true)
@@ -59,7 +53,7 @@ export const useSearch = (searchParams: SearchParams, initialResults: Results) =
   }, [])
 
   useEffect(() => {
-    async function loadHotels() {
+    async function loadNextPage() {
       setIsComplete(false)
 
       const offset = CLIENT_PAGE_SIZE * page
@@ -75,8 +69,8 @@ export const useSearch = (searchParams: SearchParams, initialResults: Results) =
         return [...new Set(hotelIds)]
       })
   
-      setHotelEntities((pages) => ({
-        ...pages,
+      setHotelEntities((existingHotelEntities) => ({
+        ...existingHotelEntities,
         ...nextPage.hotelEntities
       }))
   
@@ -87,24 +81,18 @@ export const useSearch = (searchParams: SearchParams, initialResults: Results) =
 
       setHasMoreResults(nextPage.hasMoreResults)
 
-      const offers = await getOffers(nextPage.hotelIds, searchParams)
-
-      const offerEntities: Record<string, OfferEntity> = {}
-
-      offers.results?.forEach((offerEntity) => {
-        offerEntities[offerEntity.id] = offerEntity
-      })
+      const offersResponse = await getOffers(nextPage.hotelIds, searchParams)
 
       setOfferEntities((existingOfferEntities) => ({
         ...existingOfferEntities,
-        ...offerEntities
+        ...offersResponse.offerEntities
       }))
 
       setIsComplete(true)
     }
 
     if (page > 1) {
-      void loadHotels()
+      void loadNextPage()
     }
   }, [page, searchParams])
 

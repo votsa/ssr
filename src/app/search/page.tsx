@@ -42,27 +42,13 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       title,
       description,
       images
-    },
+    }
   }
 }
 
 /**
- * Search page
+ * Anchor hotel
  */
-async function Search(props: Props) {
-  const searchId = uuidv4()
-
-  const searchParams = requestToSearchParams(props.searchParams, searchId)
-
-  const results = await getResultsWithAvailability(searchParams)
-
-  if (!results || !results.hotelIds.length) return <div className="text-lg text-center">No results found</div>
-
-  return (
-    <HotelsList initialResults={results} searchParams={searchParams} />
-  )
-}
-
 async function Anchor(props: Props) {
   const searchId = uuidv4()
   const searchParams = requestToSearchParams(props.searchParams, searchId)
@@ -82,7 +68,9 @@ async function Anchor(props: Props) {
   return (
     <div>
       <div className="mx-3 my-3">
-        <div className="text-sm">{anchorResponse.anchor.placeDisplayName} : {anchorResponse.searchParameters.checkIn} / {anchorResponse.searchParameters.checkOut}</div>
+        <div className="text-sm">
+          {anchorResponse.anchor.placeDisplayName} : {anchorResponse.searchParameters.checkIn} / {anchorResponse.searchParameters.checkOut}
+        </div>
       </div>
       {anchorHotel && (
         <>
@@ -97,6 +85,24 @@ async function Anchor(props: Props) {
         </>
       )}
     </div>
+  )
+}
+
+
+/**
+ * Search results
+ */
+async function Search(props: Props) {
+  const searchId = uuidv4()
+
+  const searchParams = requestToSearchParams(props.searchParams, searchId)
+
+  const results = await getResultsWithAvailability(searchParams)
+
+  if (!results || !results.hotelIds.length) return <div className="text-lg text-center">No results found</div>
+
+  return (
+    <HotelsList initialResults={results} searchParams={searchParams} />
   )
 }
 
