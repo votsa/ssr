@@ -43,8 +43,9 @@ const imageProvider = imageProviderImgProxyFactory({
   secret: process.env.NEXT_PUBLIC_IMAGE_RESIZE_SERVICE_SECRET as string,
   url: process.env.NEXT_PUBLIC_IMAGE_RESIZE_SERVICE_URL as string
 })
-
+console.log('process.env.NEXT_PUBLIC_IMAGE_RESIZE_SERVICE_SECRET 1',  process.env.NEXT_PUBLIC_IMAGE_RESIZE_SERVICE_SECRET)
 export function HotelsList(props: ListProps) {
+  console.log('process.env.NEXT_PUBLIC_IMAGE_RESIZE_SERVICE_SECRET 2',  process.env.NEXT_PUBLIC_IMAGE_RESIZE_SERVICE_SECRET)
   return (
     <>
       {props.hotelIds.map((hotelId) => {
