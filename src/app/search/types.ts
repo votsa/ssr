@@ -1,5 +1,6 @@
 export interface UserRequestParams {
-  placeId: string
+  placeId?: string
+  hotelId?: string
   checkIn: string
   checkOut: string
   rooms: string

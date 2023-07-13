@@ -1,4 +1,5 @@
 import {SearchParams, OfferEntity, Hotel, UserRequestParams} from './types'
+import {v4 as uuidv4} from 'uuid'
 
 /**
  * Removes empty properties from an object
@@ -30,7 +31,8 @@ function createSearchRequestString(
   searchParams: SearchParams
 ) {
   const urlParameters = removeEmpty({
-    placeId: searchParams.placeId,
+    placeId: searchParams.hotelId ? undefined : searchParams.placeId,
+    hotelId: searchParams.hotelId,
     checkIn: searchParams.checkIn,
     checkOut: searchParams.checkOut,
     rooms: searchParams.rooms,
@@ -54,11 +56,49 @@ function createSearchRequestString(
   return new URLSearchParams(urlParameters).toString()
 }
 
-
 export async function getSearchResults(searchParams: SearchParams) {
   const requestString = createSearchRequestString(searchParams)
 
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_HOSTNAME}/search?${requestString}`)
+ 
+  if (!res.ok) {
+    throw new Error('Failed to fetch data')
+  }
+ 
+  return res.json()
+}
+
+function createAnchorRequestString(
+  searchParams: SearchParams
+) {
+  const urlParameters = removeEmpty({
+    placeId: searchParams.hotelId ? undefined : searchParams.placeId,
+    hotelId: searchParams.hotelId,
+    checkIn: searchParams.checkIn,
+    checkOut: searchParams.checkOut,
+    rooms: searchParams.rooms,
+    pageSize: searchParams.pageSize,
+    anonymousId: 'anonymous-id',
+    searchId: searchParams.searchId,
+    language: 'en',
+    currency: 'EUR',
+    countryCode: 'NL',
+    brand: 'vio',
+    profileId: 'findhotel-website',
+    deviceType: 'desktop',
+    cugDeals: 'signed_in,offline,sensitive,prime,fsf',
+    tier: 'plus',
+    attributes: 'anchor,anchorHotelId,anchorType,hotelEntities,searchParameters',
+    variations: 'sapi4eva-hso-ctr-b,sapi4eva-imagedb-b,sapi4eva-own-place-hotel-mapping-2-b,sapi4eva-preheat-anchor-offers-b,sapi4eva-room-bundles-b,sapi4eva-price-range-v2-b'
+  })
+
+  return new URLSearchParams(urlParameters).toString()
+}
+
+export async function getAnchor(searchParams: SearchParams) {
+  const requestString = createAnchorRequestString(searchParams)
+
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_HOSTNAME}/anchor?${requestString}`)
  
   if (!res.ok) {
     throw new Error('Failed to fetch data')
@@ -124,7 +164,6 @@ function createAvailabilityRequestString(
     rooms: searchParams.rooms,
     anonymousId: 'next-js-vio-test-id',
     searchId: searchParams.searchId,
-    clientRequestId: 'next-js-vio-test-request-id',
     locale: 'en',
     currency: 'EUR',
     countryCode: 'NL',
@@ -134,7 +173,7 @@ function createAvailabilityRequestString(
     roomLimit: 2,
     tier: 'plus',
     cugDeals: 'signed_in,offline,sensitive,prime,fsf',
-    rand: new Date().getTime(),
+    clientRequestId: uuidv4()
   })
 
   return new URLSearchParams(urlParameters).toString()
@@ -152,7 +191,6 @@ export async function availabilitySearch(searchParams: AvailabilityParams) {
     headers: requestHeaders
   })
 
- 
   if (!response.ok) {
     throw new Error('Failed to fetch availability data')
   }
@@ -164,23 +202,35 @@ interface AvailabilityResponse {
   results: OfferEntity[]
 }
 
-function getAvailability(params: AvailabilityParams): Promise<AvailabilityResponse> {
+export function getAvailability(params: AvailabilityParams, polls = 5): Promise<AvailabilityResponse> {
   let pollsCount = 0
+
+  const CLIENT_PAGE_SIZE = params.offset === 0 ? 40 : 20
+
+  const log = createLogger()
 
   return new Promise((resolve) => {
     async function poll() {
       const response = await availabilitySearch(params)
 
+      let availability = 0
+
+      response.results?.forEach((res: OfferEntity) => {
+        if (res.offers?.length) availability++
+      })
+
       pollsCount++
 
-      if (pollsCount >= 2 || response?.status.complete) {
+      log('Availability iteration', `pageSize = ${CLIENT_PAGE_SIZE}, iteration = ${pollsCount}, available = ${availability}`)
+
+      if (pollsCount >= polls || response?.status.complete || availability >= CLIENT_PAGE_SIZE) {
         pollsCount = 0
 
         resolve(response)
       } else {
         setTimeout(() => {
           poll()
-        }, 800);
+        }, 1000);
       }
     }
 
