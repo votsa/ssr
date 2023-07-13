@@ -17,11 +17,11 @@ interface Props {
  */
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const anchorResponse = await getAnchor(searchParams) ?? {}
-  const images:string[] = []
+  const images:string[] = ['https://media.s-bol.com/Y5Emk8jpE0JM/q7xw29y/550x661.jpg']
 
-  if (anchorResponse.anchorHotelId && anchorResponse.hotelEntities?.[anchorResponse.anchorHotelId]?.imageURIs?.[0]) {
-    images.push(anchorResponse.hotelEntities?.[anchorResponse.anchorHotelId]?.imageURIs?.[0])
-  }
+  // if (anchorResponse.anchorHotelId && anchorResponse.hotelEntities?.[anchorResponse.anchorHotelId]?.imageURIs?.[0]) {
+  //   images.push(anchorResponse.hotelEntities?.[anchorResponse.anchorHotelId]?.imageURIs?.[0])
+  // }
 
   return {
     title: anchorResponse.anchor?.hotelName ?? anchorResponse.anchor?.placeName ?? 'Vio.com',
