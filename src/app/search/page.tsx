@@ -60,6 +60,8 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     title: anchorResponse.anchor?.hotelName ?? anchorResponse.anchor?.placeName ?? 'Vio.com',
     description: anchorResponse.anchor?.placeDisplayName ?? anchorResponse.anchor?.placeADN,
     openGraph: {
+      title: anchorResponse.anchor?.hotelName ?? anchorResponse.anchor?.placeName ?? 'Vio.com',
+      description: anchorResponse.anchor?.placeDisplayName ?? anchorResponse.anchor?.placeADN,
       images
     },
   }
