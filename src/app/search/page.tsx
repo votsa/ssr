@@ -5,7 +5,7 @@ import {v4 as uuidv4} from 'uuid'
 
 import {HotelsListContainer, HotelsListFallback, HotelCard} from './HotelsList'
 import {getAnchor, getResultsWithAvailability, requestToSearchParams, getAvailability} from './apis'
-import {SearchParams} from './types'
+import {OfferEntity, SearchParams} from './types'
 
 interface Props {
   searchParams: SearchParams
@@ -51,11 +51,15 @@ async function Anchor(props: Props) {
 
   const anchorHotel = anchorResponse.hotelEntities?.[anchorResponse.anchorHotelId]
 
-  const anchorAvailability = await getAvailability({
-    hotelIds: [anchorHotel.objectID],
-    ...props.searchParams,
-    searchId
-  }, 3)
+  let anchorAvailability: {results: OfferEntity[]} = {results: []}
+
+  if (anchorHotel) {
+    anchorAvailability = await getAvailability({
+      hotelIds: [anchorHotel.objectID],
+      ...props.searchParams,
+      searchId
+    }, 3)
+  }
 
   return (
     <div>
@@ -65,7 +69,7 @@ async function Anchor(props: Props) {
       {anchorHotel && (
         <>
           <div className="border border-blue-500 rounded-xl">
-            <HotelCard hotel={anchorHotel} offerEntity={anchorAvailability?.results[0]} />
+            <HotelCard hotel={anchorHotel} offerEntity={anchorAvailability.results?.[0]} />
           </div>
           <div className="text-xl mx-3 mt-8 font-normal">Great deals available</div>
         </>
