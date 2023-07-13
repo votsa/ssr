@@ -3,67 +3,44 @@ import {Metadata} from 'next';
 import {Suspense} from 'react'
 import {v4 as uuidv4} from 'uuid'
 
-import {HotelsListContainer, HotelsListFallback} from './HotelsList'
-import {AnchorHotel} from './AnchorHotel'
+import {AnchorHotel, HotelsList, HotelsListFallback} from '@/src/components/Hotel'
+import {getImageProvider, SIZES} from '@/src/app/utils'
+
 import {getAnchor, getResultsWithAvailability, requestToSearchParams, getAvailability} from './apis'
-import {imageProviderImgProxyFactory} from './imageProviderFactories'
 import {OfferEntity, SearchParams} from './types'
 
 interface Props {
   searchParams: SearchParams
 }
 
-export type SizeType =
-  | 'extraLarge'
-  | 'large'
-  | 'main'
-  | 'medium'
-  | 'small'
-  | 'mobileLarge'
-  | 'mobileMedium'
-  | 'mobileSmall'
-  | 'gridPrimary'
-  | 'gridSecondary'
-
-const SIZES: Record<SizeType, [number, number]> = {
-  extraLarge: [740, 393],
-  large: [615, 340],
-  main: [292, 284],
-  medium: [59, 59],
-  small: [38, 38],
-  mobileLarge: [620, 176],
-  mobileMedium: [620, 152],
-  mobileSmall: [126, 152],
-  gridPrimary: [456, 330],
-  gridSecondary: [228, 162]
-}
-
-const imageProvider = imageProviderImgProxyFactory({
-  secret: process.env.NEXT_PUBLIC_IMAGE_RESIZE_SERVICE_SECRET as string,
-  url: process.env.NEXT_PUBLIC_IMAGE_RESIZE_SERVICE_URL as string
-})
-
 /**
  * Set dynamic metadata
  */
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const anchorResponse = await getAnchor(searchParams) ?? {}
-  const images:string[] = []
+
+  const images = []
 
   if (anchorResponse.anchorHotelId) {
+    const imageProvider = getImageProvider()
     const anchorImage = anchorResponse.hotelEntities?.[anchorResponse.anchorHotelId]?.imageURIs?.[0]
 
     if (anchorImage) {
-      images.push(imageProvider(anchorImage, SIZES['extraLarge']))
+      images.push(
+        imageProvider(anchorImage, SIZES['extraLarge'])
+      )
     }
   }
 
+  const title = anchorResponse.anchor?.hotelName ?? anchorResponse.anchor?.placeName ?? 'Vio.com'
+  const description =  anchorResponse.anchor?.placeDisplayName ?? anchorResponse.anchor?.placeADN
+
   return {
-    title: anchorResponse.anchor?.hotelName ?? anchorResponse.anchor?.placeName ?? 'Vio.com',
-    description: anchorResponse.anchor?.placeDisplayName ?? anchorResponse.anchor?.placeADN,
+    title,
+    description,
     openGraph: {
-      title: anchorResponse.anchor?.hotelName ?? anchorResponse.anchor?.placeName ?? 'Vio.com',
-      description: anchorResponse.anchor?.placeDisplayName ?? anchorResponse.anchor?.placeADN,
+      title,
+      description,
       images
     },
   }
@@ -72,7 +49,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 /**
  * Search page
  */
-async function SearchResults(props: Props) {
+async function Search(props: Props) {
   const searchId = uuidv4()
 
   const searchParams = requestToSearchParams(props.searchParams, searchId)
@@ -82,7 +59,7 @@ async function SearchResults(props: Props) {
   if (!results || !results.hotelIds.length) return <div className="text-lg text-center">No results found</div>
 
   return (
-    <HotelsListContainer initialResults={results} searchParams={searchParams} />
+    <HotelsList initialResults={results} searchParams={searchParams} />
   )
 }
 
@@ -126,14 +103,14 @@ async function Anchor(props: Props) {
 /**
  * Search page loader
  */
-export default function SearchPageLoader(props: Props) {
+export default function PageLoader(props: Props) {
   return (
     <main className="flex min-h-screen flex-col items-left p-3">
-      <Suspense fallback={<HotelsListFallback />}>
+      <Suspense fallback={<HotelsListFallback items={1} />}>
         <Anchor searchParams={props.searchParams} />
       </Suspense>
       <Suspense fallback={<HotelsListFallback />}>
-        <SearchResults searchParams={props.searchParams} />
+        <Search searchParams={props.searchParams} />
       </Suspense>
     </main>
   )

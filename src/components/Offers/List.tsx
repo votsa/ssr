@@ -1,13 +1,13 @@
 'use client'
 
-import {OfferEntity} from './types'
+import {OfferEntity} from '@/src/app/search/types'
 
 interface Props {
   offerEntity?: OfferEntity
   isComplete: boolean
 }
 
-export default function OffersList({offerEntity, isComplete}: Props) {
+export function OffersList({offerEntity, isComplete}: Props) {
   if (!offerEntity?.offers?.length && isComplete) {
     return (
       <div className="p-6 bg-yellow-100 text-sm w-auto inline-block">
@@ -24,6 +24,7 @@ export default function OffersList({offerEntity, isComplete}: Props) {
         return (
           <div key={offer.id}>
             {n > 0 && <div className="border-b" />}
+
             <a href={offer.url} target="_blank" className="flex py-4 align-middle">
               <div className="w-20">{offer.providerCode}</div>
               <div className="flex-1">

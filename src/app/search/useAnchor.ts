@@ -1,8 +1,5 @@
-'use client'
-
 import {useState, useEffect} from 'react'
 
-import {HotelCard} from './HotelsList'
 import {SearchParams, Hotel, OfferEntity} from './types'
 import {getOffers} from './apis'
 
@@ -12,7 +9,7 @@ interface Props {
   searchParams: SearchParams
 }
 
-const useAnchorHotel = (props: Props) => {
+export const useAnchor = (props: Props) => {
   const [isComplete, setIsComplete] = useState(false)
   const [hotel, setHotel] = useState(props.hotel)
   const [offerEntity, setOfferEntity] = useState(props.offerEntity)
@@ -36,12 +33,4 @@ const useAnchorHotel = (props: Props) => {
     hotel,
     offerEntity
   }
-}
-
-export function AnchorHotel(props: Props) {
-  const {hotel, offerEntity, isComplete} = useAnchorHotel(props)
-
-  return (
-    <HotelCard hotel={hotel} offerEntity={offerEntity} isComplete={isComplete} />
-  )
 }
