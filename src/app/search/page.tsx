@@ -25,7 +25,7 @@ export type SizeType =
   | 'gridPrimary'
   | 'gridSecondary'
 
-export const SIZES: Record<SizeType, [number, number]> = {
+const SIZES: Record<SizeType, [number, number]> = {
   extraLarge: [740, 393],
   large: [615, 340],
   main: [292, 284],
