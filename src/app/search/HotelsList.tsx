@@ -102,7 +102,7 @@ export function HotelsList(props: ListProps) {
 
         return (
           <div key={hotel.objectID}>
-            <HotelCard hotel={hotel} offerEntity={offerEntity} />
+            <HotelCard hotel={hotel} offerEntity={offerEntity} isComplete={props.isComplete} />
             <div className="border-b mx-3 my-3" />
           </div>
         )
