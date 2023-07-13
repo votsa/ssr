@@ -4,6 +4,7 @@ import {Suspense} from 'react'
 import {v4 as uuidv4} from 'uuid'
 
 import {HotelsListContainer, HotelsListFallback, HotelCard} from './HotelsList'
+import {AnchorHotel} from './AnchorHotel'
 import {getAnchor, getResultsWithAvailability, requestToSearchParams, getAvailability} from './apis'
 import {OfferEntity, SearchParams} from './types'
 
@@ -42,14 +43,9 @@ async function SearchResults(props: Props) {
 
 async function Anchor(props: Props) {
   const searchId = uuidv4()
-
   const searchParams = requestToSearchParams(props.searchParams, searchId)
-
   const anchorResponse = await getAnchor(searchParams)
-
-  if (!anchorResponse) return <div className="text-lg text-center">No results found</div>
-
-  const anchorHotel = anchorResponse.hotelEntities?.[anchorResponse.anchorHotelId]
+  const anchorHotel = anchorResponse?.hotelEntities?.[anchorResponse.anchorHotelId]
 
   let anchorAvailability: {results: OfferEntity[]} = {results: []}
 
@@ -58,7 +54,7 @@ async function Anchor(props: Props) {
       hotelIds: [anchorHotel.objectID],
       ...props.searchParams,
       searchId
-    }, 3)
+    }, 1)
   }
 
   return (
@@ -69,7 +65,11 @@ async function Anchor(props: Props) {
       {anchorHotel && (
         <>
           <div className="border border-blue-500 rounded-xl">
-            <HotelCard hotel={anchorHotel} offerEntity={anchorAvailability.results?.[0]} />
+            <AnchorHotel
+              hotel={anchorHotel}
+              offerEntity={anchorAvailability.results?.[0]}
+              searchParams={props.searchParams}
+            />
           </div>
           <div className="text-xl mx-3 mt-8 font-normal">Great deals available</div>
         </>

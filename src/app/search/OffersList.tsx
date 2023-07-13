@@ -4,10 +4,11 @@ import {OfferEntity} from './types'
 
 interface Props {
   offerEntity?: OfferEntity
+  isComplete: boolean
 }
 
-export default function OffersList({offerEntity}: Props) {
-  if (!offerEntity?.offers?.length) {
+export default function OffersList({offerEntity, isComplete}: Props) {
+  if (!offerEntity?.offers?.length && isComplete) {
     return (
       <div className="p-6 bg-yellow-100 text-sm w-auto inline-block">
         Unfortunately the hotel is unavailable at this moment
@@ -17,7 +18,7 @@ export default function OffersList({offerEntity}: Props) {
 
    return (
     <>
-      {offerEntity.offers.map((offer, n) => {
+      {offerEntity?.offers.map((offer, n) => {
         const room = offerEntity.rooms[offer.roomID]
 
         return (

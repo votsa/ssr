@@ -44,7 +44,7 @@ const imageProvider = imageProviderImgProxyFactory({
   url: process.env.NEXT_PUBLIC_IMAGE_RESIZE_SERVICE_URL as string
 })
 
-export function HotelCard({hotel, offerEntity}: {hotel: Hotel, offerEntity: OfferEntity}) {
+export function HotelCard({hotel, offerEntity, isComplete}: {hotel: Hotel, offerEntity: OfferEntity, isComplete: boolean}) {
   return (
     <div className="mx-auto w-full p-3 flex max-w-full flex-col md:max-w-full md:flex-row md:items-start md:text-left">
       <div className="mb-4 md:mr-6 md:mb-0 md:w-96">
@@ -87,7 +87,7 @@ export function HotelCard({hotel, offerEntity}: {hotel: Hotel, offerEntity: Offe
         </div>
         <div className="text-xl font-medium">{hotel.hotelName}</div>
         <div className="mb-3 text-xs">{hotel.placeDisplayName}</div> 
-        <OffersList offerEntity={offerEntity} />
+        <OffersList offerEntity={offerEntity} isComplete={isComplete} />
       </div>
     </div>
   )

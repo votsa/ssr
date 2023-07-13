@@ -221,9 +221,9 @@ export function getAvailability(params: AvailabilityParams, polls = 5): Promise<
 
       pollsCount++
 
-      log('Availability iteration', `pageSize = ${CLIENT_PAGE_SIZE}, iteration = ${pollsCount}, available = ${availability}`)
+      log('Availability iteration', `pageSize = ${CLIENT_PAGE_SIZE}, iteration = ${pollsCount}, requested = ${params.hotelIds?.length} available = ${availability}`)
 
-      if (pollsCount >= polls || response?.status.complete || availability >= CLIENT_PAGE_SIZE) {
+      if (pollsCount >= polls || response?.status.complete || (availability >= CLIENT_PAGE_SIZE && pollsCount > 1)) {
         pollsCount = 0
 
         resolve(response)
@@ -250,13 +250,14 @@ function createLogger() {
 }
 
 const CLIENT_PAGE_OFFSET = 5
+const CLIENT_PAGE_SIZE = 20
 
 export async function getResultsWithAvailability(params: SearchParams) {
   const log = createLogger()
 
   const searchParams = requestToSearchParams(params, params.searchId)
 
-  const CLIENT_PAGE_SIZE = searchParams.offset === 0 ? 40 : 20
+  const REQUEST_PAGE_SIZE = searchParams.offset === 0 ? 40 : 20
 
   log('Search start')
 
@@ -264,7 +265,7 @@ export async function getResultsWithAvailability(params: SearchParams) {
     ...searchParams,
     pageSize: 250,
     offset: 0,
-    attributes: 'anchor,facets,hotelEntities,hotelIds,offset,resultsCount,resultsCountTotal,searchParameters'
+    attributes: 'hotelEntities,hotelIds'
   })
 
   log('Hotels received', staticResults.hotelIds?.length)
@@ -283,8 +284,8 @@ export async function getResultsWithAvailability(params: SearchParams) {
 
   log('Hotels with tags count', hotelIdsWithTags.length)
 
-  const hotelIds = hotelIdsWithTags.length > CLIENT_PAGE_SIZE
-    ? hotelIdsWithTags.slice(searchParams.offset, CLIENT_PAGE_SIZE + CLIENT_PAGE_OFFSET + searchParams.offset)
+  const hotelIds = hotelIdsWithTags.length > REQUEST_PAGE_SIZE
+    ? hotelIdsWithTags.slice(searchParams.offset, REQUEST_PAGE_SIZE + CLIENT_PAGE_OFFSET + searchParams.offset)
     : staticResults.hotelIds
 
   log('Availability requested')
@@ -304,7 +305,7 @@ export async function getResultsWithAvailability(params: SearchParams) {
   )
 
   const hotelIdsToReturn = availableHotels
-    .slice(searchParams.offset, CLIENT_PAGE_SIZE + searchParams.offset)
+    .slice(searchParams.offset, REQUEST_PAGE_SIZE + searchParams.offset)
     .map((offerEntity) => {
       availableHotelEntities[offerEntity.id] = staticResults.hotelEntities[offerEntity.id]
       availableOfferEntities[offerEntity.id] = offerEntity
@@ -316,7 +317,7 @@ export async function getResultsWithAvailability(params: SearchParams) {
 
   const hasMoreResults =
     availableHotels.length > CLIENT_PAGE_SIZE + searchParams.offset
-    || hotelIdsWithTags.length >  CLIENT_PAGE_SIZE + searchParams.offset
+    || hotelIdsWithTags.length > CLIENT_PAGE_SIZE + searchParams.offset
 
   return {
     hasMoreResults,
