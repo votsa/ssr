@@ -54,7 +54,7 @@ async function Anchor(props: Props) {
       hotelIds: [anchorHotel.objectID],
       ...props.searchParams,
       searchId
-    }, 1)
+    }, 2)
   }
 
   return (
