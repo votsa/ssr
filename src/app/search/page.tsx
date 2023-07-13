@@ -3,21 +3,54 @@ import {Metadata} from 'next';
 import {Suspense} from 'react'
 import {v4 as uuidv4} from 'uuid'
 
-import {HotelsListContainer, HotelsListFallback, HotelCard} from './HotelsList'
+import {HotelsListContainer, HotelsListFallback} from './HotelsList'
 import {AnchorHotel} from './AnchorHotel'
 import {getAnchor, getResultsWithAvailability, requestToSearchParams, getAvailability} from './apis'
+import {imageProviderImgProxyFactory} from './imageProviderFactories'
 import {OfferEntity, SearchParams} from './types'
 
 interface Props {
   searchParams: SearchParams
 }
 
+export type SizeType =
+  | 'extraLarge'
+  | 'large'
+  | 'main'
+  | 'medium'
+  | 'small'
+  | 'mobileLarge'
+  | 'mobileMedium'
+  | 'mobileSmall'
+  | 'gridPrimary'
+  | 'gridSecondary'
+
+export const SIZES: Record<SizeType, [number, number]> = {
+  extraLarge: [740, 393],
+  large: [615, 340],
+  main: [292, 284],
+  medium: [59, 59],
+  small: [38, 38],
+  mobileLarge: [620, 176],
+  mobileMedium: [620, 152],
+  mobileSmall: [126, 152],
+  gridPrimary: [456, 330],
+  gridSecondary: [228, 162]
+}
+
+const imageProvider = imageProviderImgProxyFactory({
+  secret: process.env.NEXT_PUBLIC_IMAGE_RESIZE_SERVICE_SECRET as string,
+  url: process.env.NEXT_PUBLIC_IMAGE_RESIZE_SERVICE_URL as string
+})
+
 /**
  * Set dynamic metadata
  */
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const anchorResponse = await getAnchor(searchParams) ?? {}
-  const images:string[] = ['https://media.s-bol.com/Y5Emk8jpE0JM/q7xw29y/550x661.jpg']
+  const images:string[] = ['https://partner.booking.com/sites/default/files/2021-01/partner-help.jpg']
+
+  //imageProvider(hotel.imageURIs?.[0], SIZES['gridPrimary'])
 
   // if (anchorResponse.anchorHotelId && anchorResponse.hotelEntities?.[anchorResponse.anchorHotelId]?.imageURIs?.[0]) {
   //   images.push(anchorResponse.hotelEntities?.[anchorResponse.anchorHotelId]?.imageURIs?.[0])
