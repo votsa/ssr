@@ -3,16 +3,18 @@
 import {OfferEntity, SearchParams, RateBreakDown} from '@/src/app/search/types'
 import {daysDifference} from '@/src/app/utils'
 
-interface Props {
-  offerEntity?: OfferEntity
-  searchParams: SearchParams
-  isComplete: boolean
-}
+import {ProviderLogo} from './ProviderLogo'
 
 function calculateNightlyPrice(rate: RateBreakDown, checkIn: string, checkOut: string) {
   const dayDifference = daysDifference(checkIn, checkOut)
 
   return ((rate.base + rate.hotelFees + rate.taxes) / dayDifference).toFixed(0)
+}
+
+interface Props {
+  offerEntity?: OfferEntity
+  searchParams: SearchParams
+  isComplete: boolean
 }
 
 export function OffersList({offerEntity, isComplete, searchParams}: Props) {
@@ -24,7 +26,7 @@ export function OffersList({offerEntity, isComplete, searchParams}: Props) {
     )
   }
 
-   return (
+  return (
     <>
       {offerEntity?.offers.map((offer, n) => {
         const room = offerEntity.rooms[offer.roomID]
@@ -34,7 +36,7 @@ export function OffersList({offerEntity, isComplete, searchParams}: Props) {
             {n > 0 && <div className="border-b" />}
 
             <a href={offer.url} target="_blank" className="flex py-4 align-middle">
-              <div className="w-20">{offer.providerCode}</div>
+              <div className="w-24"><ProviderLogo providerCode={offer.providerCode} /></div>
               <div className="flex-1">
                 <span className="h-8 text-xs">{room?.name}</span>
               </div>
