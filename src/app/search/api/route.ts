@@ -1,10 +1,9 @@
-import { NextResponse } from 'next/server'
+import {NextResponse} from 'next/server'
 import {getResultsWithAvailability} from '../apis'
-import { SearchParams } from '../types'
- 
+import {SearchParams} from '../types'
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
+  const {searchParams} = new URL(request.url)
 
   const params = {
     ...Object.fromEntries(new URLSearchParams(searchParams)),

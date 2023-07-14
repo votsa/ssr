@@ -7,7 +7,9 @@ import {AnchorHotel, HotelsList, HotelsListFallback} from '@/src/components/Hote
 import {getImageProvider, SIZES} from '@/src/app/utils'
 
 import {getAnchor, getResultsWithAvailability, requestToSearchParams, getAvailability} from './apis'
+import UserProvider from './UserProvider'
 import {OfferEntity, SearchParams} from './types'
+import {getUser} from './user'
 
 interface Props {
   searchParams: SearchParams
@@ -112,12 +114,14 @@ async function Search(props: Props) {
 export default function PageLoader(props: Props) {
   return (
     <main className="flex min-h-screen flex-col items-left p-3">
-      <Suspense fallback={<HotelsListFallback items={1} />}>
-        <Anchor searchParams={props.searchParams} />
-      </Suspense>
-      <Suspense fallback={<HotelsListFallback />}>
-        <Search searchParams={props.searchParams} />
-      </Suspense>
+      <UserProvider user={getUser()}>
+        <Suspense fallback={<HotelsListFallback items={1} />}>
+          <Anchor searchParams={props.searchParams} />
+        </Suspense>
+        <Suspense fallback={<HotelsListFallback />}>
+          <Search searchParams={props.searchParams} />
+        </Suspense>
+      </UserProvider>
     </main>
   )
 }

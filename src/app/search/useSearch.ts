@@ -1,33 +1,14 @@
 'use client'
 
-import {useCallback, useState, useEffect} from 'react'
-import {SearchParams, Hotel, OfferEntity} from './types'
-import {getOffers} from './apis'
-
-interface Results {
-  hotelIds: string[]
-  hotelEntities: Record<string, Hotel>
-  offerEntities: Record<string, OfferEntity>
-  hasMoreResults: boolean
-}
-
-export async function getData(searchParams: SearchParams): Promise<Results> {
-  const requestString = new URLSearchParams(searchParams as unknown as URLSearchParams).toString()
-
-  const requestUrl = `/search/api?${requestString}`
-
-  const res = await fetch(requestUrl)
- 
-  if (!res.ok) {
-    throw new Error('Failed to fetch data')
-  }
-
-  return res.json()
-}
+import {useCallback, useState, useEffect, useContext} from 'react'
+import {SearchParams} from './types'
+import {getOffers, getData, Results} from './clientApi'
+import {UserContext} from './UserProvider'
 
 const CLIENT_PAGE_SIZE = 20
 
 export const useSearch = (searchParams: SearchParams, initialResults: Results) => {
+  const user = useContext(UserContext)
   const [isComplete, setIsComplete] = useState(false)
   const [page, setPage] = useState(1)
   const [hasMoreResults, setHasMoreResults] = useState(initialResults.hasMoreResults)
@@ -39,7 +20,7 @@ export const useSearch = (searchParams: SearchParams, initialResults: Results) =
     async function loadOffers() {
       setIsComplete(false)
 
-      const offersResponse = await getOffers(hotelIds, searchParams)
+      const offersResponse = await getOffers(hotelIds, searchParams, user)
 
       setOfferEntities((existingOfferEntities) => ({
         ...existingOfferEntities,
@@ -58,7 +39,7 @@ export const useSearch = (searchParams: SearchParams, initialResults: Results) =
 
       const offset = CLIENT_PAGE_SIZE * page
 
-      const nextPage = await getData({...searchParams, offset })
+      const nextPage = await getData({...searchParams, offset }, user)
 
       setHotelIds((existingHotelIds) => {
         const hotelIds = [
@@ -81,7 +62,7 @@ export const useSearch = (searchParams: SearchParams, initialResults: Results) =
 
       setHasMoreResults(nextPage.hasMoreResults)
 
-      const offersResponse = await getOffers(nextPage.hotelIds, searchParams)
+      const offersResponse = await getOffers(nextPage.hotelIds, searchParams, user)
 
       setOfferEntities((existingOfferEntities) => ({
         ...existingOfferEntities,
@@ -94,7 +75,7 @@ export const useSearch = (searchParams: SearchParams, initialResults: Results) =
     if (page > 1) {
       void loadNextPage()
     }
-  }, [page, searchParams])
+  }, [user, page, searchParams])
 
   const handleLoadMore = useCallback(() => {
     setPage((page) => page + 1)

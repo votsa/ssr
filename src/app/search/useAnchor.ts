@@ -1,7 +1,10 @@
-import {useState, useEffect} from 'react'
+'use client'
+
+import {useState, useEffect, useContext} from 'react'
 
 import {SearchParams, Hotel, OfferEntity} from './types'
-import {getOffers} from './apis'
+import {getOffers} from './clientApi'
+import {UserContext} from './UserProvider'
 
 interface Props {
   hotel: Hotel
@@ -10,6 +13,7 @@ interface Props {
 }
 
 export const useAnchor = (props: Props) => {
+  const user = useContext(UserContext)
   const [isComplete, setIsComplete] = useState(false)
   const [hotel, setHotel] = useState(props.hotel)
   const [offerEntity, setOfferEntity] = useState(props.offerEntity)
@@ -18,7 +22,7 @@ export const useAnchor = (props: Props) => {
     async function loadOffers() {
       setIsComplete(false)
 
-      const offersResponse = await getOffers([hotel.objectID], props.searchParams)
+      const offersResponse = await getOffers([hotel.objectID], props.searchParams, user)
 
       setOfferEntity(offersResponse.offerEntities[hotel.objectID])
 

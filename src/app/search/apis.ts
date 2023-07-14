@@ -2,6 +2,8 @@ import {v4 as uuidv4} from 'uuid'
 import {removeEmpty} from '@/src/app/utils'
 
 import {SearchParams, OfferEntity, Hotel, UserRequestParams, Offer} from './types'
+import {getUser, User} from './user'
+
 
 export function requestToSearchParams(requests: UserRequestParams, searchId: string): SearchParams {
   return {
@@ -15,6 +17,8 @@ export function requestToSearchParams(requests: UserRequestParams, searchId: str
 function createSearchRequestString(
   searchParams: SearchParams
 ) {
+  const user = getUser()
+
   const urlParameters = removeEmpty({
     placeId: searchParams.hotelId ? undefined : searchParams.placeId,
     hotelId: searchParams.hotelId,
@@ -22,11 +26,11 @@ function createSearchRequestString(
     checkOut: searchParams.checkOut,
     rooms: searchParams.rooms,
     pageSize: searchParams.pageSize,
-    anonymousId: 'anonymous-id',
+    anonymousId: user.anonymousId,
     searchId: searchParams.searchId,
     language: 'en',
     currency: 'EUR',
-    countryCode: 'NL',
+    countryCode: user.countryCode,
     brand: 'vio',
     profileId: 'findhotel-website',
     deviceType: 'desktop',
@@ -56,6 +60,8 @@ export async function getSearchResults(searchParams: SearchParams) {
 function createAnchorRequestString(
   searchParams: SearchParams
 ) {
+  const user = getUser()
+
   const urlParameters = removeEmpty({
     placeId: searchParams.hotelId ? undefined : searchParams.placeId,
     hotelId: searchParams.hotelId,
@@ -63,11 +69,11 @@ function createAnchorRequestString(
     checkOut: searchParams.checkOut,
     rooms: searchParams.rooms,
     pageSize: searchParams.pageSize,
-    anonymousId: 'anonymous-id',
+    anonymousId: user.anonymousId,
     searchId: searchParams.searchId,
     language: 'en',
     currency: 'EUR',
-    countryCode: 'NL',
+    countryCode: user.countryCode,
     brand: 'vio',
     profileId: 'findhotel-website',
     deviceType: 'desktop',
@@ -92,69 +98,6 @@ export async function getAnchor(searchParams: SearchParams) {
   return res.json()
 }
 
-function createOffersRequestString(
-  hotelIds: string[],
-  searchParams: SearchParams
-) {
-  const urlParameters = removeEmpty({
-    hotelIds: hotelIds?.join(','),
-    checkIn: searchParams.checkIn,
-    checkOut: searchParams.checkOut,
-    rooms: searchParams.rooms,
-    anonymousId: 'anonymous-id',
-    searchId: searchParams.searchId,
-    language: 'en',
-    currency: 'EUR',
-    countryCode: 'NL',
-    brand: 'vio',
-    deviceType: 'desktop',
-    cugDeals: 'signed_in,offline,sensitive,prime,fsf',
-    tier: 'plus',
-    clientRequestId: uuidv4()
-  })
-
-  return new URLSearchParams(urlParameters).toString()
-}
-
-function offersArrayToObject(results: OfferEntity[] = []) {
-  const offerEntities: Record<string, OfferEntity> = {}
-
-  results.forEach((offerEntity) => {
-    offerEntities[offerEntity.id] = offerEntity
-  })
-
-  return offerEntities
-}
-
-interface OffersResponse {
-  offerEntities: Record<string, OfferEntity>
-  status: {
-    complete: boolean
-  }
-}
-
-export async function getOffers(
-  hotelIds: string[],
-  searchParams: SearchParams
-): Promise<OffersResponse> {
-  const requestString = createOffersRequestString(hotelIds, searchParams)
-
-  const offersUrl = `${process.env.NEXT_PUBLIC_API_HOSTNAME}/offers?${requestString}`
-
-  const res = await fetch(offersUrl)
- 
-  if (!res.ok) {
-    throw new Error('Failed to fetch data')
-  }
-
-  const response = await res.json()
-
-  return {
-    status: response.status,
-    offerEntities: offersArrayToObject(response.results)
-  }
-}
-
 export interface AvailabilityParams extends SearchParams {
   hotelIds: string[]
 }
@@ -162,16 +105,18 @@ export interface AvailabilityParams extends SearchParams {
 function createAvailabilityRequestString(
   searchParams: AvailabilityParams
 ) {
+  const user = getUser()
+
   const urlParameters = removeEmpty({
     destination: searchParams.hotelIds?.join(','),
     checkIn: searchParams.checkIn,
     checkOut: searchParams.checkOut,
     rooms: searchParams.rooms,
-    anonymousId: 'next-js-vio-test-id',
+    anonymousId: user.anonymousId,
     searchId: searchParams.searchId,
     locale: 'en',
     currency: 'EUR',
-    countryCode: 'NL',
+    countryCode: user.countryCode,
     userAgent: 'Mozilla%2F5.0+%28Macintosh%3B+Intel+Mac+OS+X+10_15_7%29+AppleWebKit%2F537.36+%28KHTML%2C+like+Gecko%29+Chrome%2F114.0.0.0+Safari%2F537.36',
     deviceType: 'desktop',
     offersCount: 3,
