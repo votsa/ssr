@@ -1,13 +1,21 @@
 'use client'
 
-import {OfferEntity} from '@/src/app/search/types'
+import {OfferEntity, SearchParams, RateBreakDown} from '@/src/app/search/types'
+import {daysDifference} from '@/src/app/utils'
 
 interface Props {
   offerEntity?: OfferEntity
+  searchParams: SearchParams
   isComplete: boolean
 }
 
-export function OffersList({offerEntity, isComplete}: Props) {
+function calculateNightlyPrice(rate: RateBreakDown, checkIn: string, checkOut: string) {
+  const dayDifference = daysDifference(checkIn, checkOut)
+
+  return ((rate.base + rate.hotelFees + rate.taxes) / dayDifference).toFixed(0)
+}
+
+export function OffersList({offerEntity, isComplete, searchParams}: Props) {
   if (!offerEntity?.offers?.length && isComplete) {
     return (
       <div className="p-6 bg-yellow-100 text-sm w-auto inline-block">
@@ -31,7 +39,9 @@ export function OffersList({offerEntity, isComplete}: Props) {
                 <span className="h-8 text-xs">{room?.name}</span>
               </div>
               <div className="text-right w-48">
-                <span>{offer.rate?.base?.toFixed(0)}</span>
+                <span>
+                  {calculateNightlyPrice(offer.rate, searchParams.checkIn, searchParams.checkOut)}
+                </span>
                 <span className="mx-1">{offer.currency}</span>
                 <span className="p-2 bg-blue-600 rounded text-white">View Deal</span>
               </div>

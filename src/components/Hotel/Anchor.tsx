@@ -17,7 +17,11 @@ export function AnchorHotel(props: Props) {
 
   return (
     <HotelCard hotel={hotel}>
-      <OffersList offerEntity={offerEntity} isComplete={isComplete} />
+      <OffersList
+        offerEntity={offerEntity}
+        isComplete={isComplete}
+        searchParams={props.searchParams}
+      />
     </HotelCard>
   )
 }

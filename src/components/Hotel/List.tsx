@@ -35,7 +35,11 @@ export function HotelsList(props: Props) {
         return (
           <div key={hotel.objectID}>
             <HotelCard hotel={hotel}>
-              <OffersList offerEntity={offerEntity} isComplete={isComplete} />
+              <OffersList
+                offerEntity={offerEntity}
+                isComplete={isComplete}
+                searchParams={props.searchParams}
+              />
             </HotelCard>
             <div className="border-b mx-3 my-3" />
           </div>

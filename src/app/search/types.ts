@@ -15,15 +15,19 @@ export interface SearchParams extends UserRequestParams {
   attributes?: string
 }
 
+export interface RateBreakDown {
+  base: number
+  hotelFees: number
+  taxes: number
+}
+
 export interface Offer {
   id: string
   roomID: string
   providerCode: string
   currency: string
   url: string
-  rate: {
-    base: number
-  }
+  rate: RateBreakDown
 }
 
 interface Room {

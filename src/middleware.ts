@@ -14,7 +14,7 @@ export function middleware(request: NextRequest) {
   }
 
   if (typeof userCountryCode === 'undefined') {
-    const countryCode = request.geo?.country ?? 'US'
+    const countryCode = request.geo?.country ?? 'NL'
     response.cookies.set('userCountryCode', countryCode)
   }
  

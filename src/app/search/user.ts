@@ -14,8 +14,8 @@ export function getUser() {
     const countryCode = cookieStore.get('userCountryCode') as {value: string}
 
     user = {
-      anonymousId: anonymousId.value,
-      countryCode: countryCode.value
+      anonymousId: anonymousId?.value,
+      countryCode: countryCode?.value
     }
   }
 
