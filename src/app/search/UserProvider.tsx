@@ -3,7 +3,12 @@
 import {createContext, ReactNode, useState, useEffect} from 'react'
 import {User} from './user'
 
-export const UserContext = createContext<User>({anonymousId: ''})
+const userTemplate = {
+  anonymousId: '',
+  countryCode: 'US'
+}
+
+export const UserContext = createContext<User>(userTemplate)
 
 export default function UserProvider(props: {user: User, children: ReactNode}) {
   const [user, setUser] = useState<User>(props.user)
