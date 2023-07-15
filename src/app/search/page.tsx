@@ -1,10 +1,11 @@
-import {Metadata} from 'next';
+import {Metadata} from 'next'
 
 import {Suspense} from 'react'
 import {v4 as uuidv4} from 'uuid'
 
 import {AnchorHotel, HotelsList, HotelsListFallback} from '@/src/components/Hotel'
 import {getImageProvider, SIZES} from '@/src/app/utils'
+import {SearchForm} from '@/src/components/SearchForm'
 
 import {getAnchor, getResultsWithAvailability, requestToSearchParams, getAvailability} from './apis'
 import UserProvider from './UserProvider'
@@ -114,6 +115,8 @@ async function Search(props: Props) {
 export default function PageLoader(props: Props) {
   return (
     <main className="flex min-h-screen flex-col items-left p-3">
+      <SearchForm searchParams={props.searchParams} />
+
       <UserProvider user={getUser()}>
         <Suspense fallback={<HotelsListFallback items={1} />}>
           <Anchor searchParams={props.searchParams} />
