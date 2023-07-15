@@ -5,7 +5,6 @@ import {v4 as uuidv4} from 'uuid'
 
 import {AnchorHotel, HotelsList, HotelsListFallback} from '@/src/components/Hotel'
 import {getImageProvider, SIZES} from '@/src/app/utils'
-import {SearchForm} from '@/src/components/SearchForm'
 
 import {getAnchor, getResultsWithAvailability, requestToSearchParams, getAvailability} from './apis'
 import UserProvider from './UserProvider'
@@ -69,12 +68,7 @@ async function Anchor(props: Props) {
   }
 
   return (
-    <div>
-      <div className="mx-3 my-3">
-        <div className="text-sm">
-          {anchorResponse.anchor.placeDisplayName} : {anchorResponse.searchParameters.checkIn} / {anchorResponse.searchParameters.checkOut}
-        </div>
-      </div>
+    <div className="mt-6">
       {anchorHotel && (
         <>
           <div className="border border-blue-500 rounded-xl">
@@ -115,12 +109,12 @@ async function Search(props: Props) {
 export default function PageLoader(props: Props) {
   return (
     <main className="flex min-h-screen flex-col items-left p-3">
-      <SearchForm searchParams={props.searchParams} />
-
       <UserProvider user={getUser()}>
-        <Suspense fallback={<HotelsListFallback items={1} />}>
-          <Anchor searchParams={props.searchParams} />
-        </Suspense>
+        {props.searchParams.hotelId && (
+          <Suspense fallback={<div className="border border-blue-500 rounded-xl mt-6"><HotelsListFallback items={1} /></div>}>
+            <Anchor searchParams={props.searchParams} />
+          </Suspense>
+        )}
         <Suspense fallback={<HotelsListFallback />}>
           <Search searchParams={props.searchParams} />
         </Suspense>

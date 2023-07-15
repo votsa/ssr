@@ -26,7 +26,7 @@ export function HotelsListFallback({items = 4}) {
               ))}
             </div>
           </div>
-          <div className="border-b mx-3 my-3" />
+          {items > 1 && <div className="border-b mx-3 my-3" />}
         </div>
       ))}
    </>
