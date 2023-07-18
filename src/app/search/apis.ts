@@ -2,16 +2,25 @@ import {v4 as uuidv4} from 'uuid'
 import {removeEmpty} from '@/src/app/utils'
 
 import {SearchParams, OfferEntity, Hotel, UserRequestParams, Offer} from './types'
-import {getUser, User} from './user'
+import {getUser} from './user'
 
 
 export function requestToSearchParams(requests: UserRequestParams, searchId: string): SearchParams {
+  let starRatings
+
+  if (requests.starRatings) {
+    starRatings = typeof requests.starRatings === 'object'
+      ? (requests.starRatings as number[]).map(Number)
+      : [requests.starRatings].map(Number)
+  }
+
   return {
     ...requests,
+    starRatings,
     offset: Number(requests.offset ?? 0),
     rooms: requests.rooms ?? '2',
     searchId
-  }
+  } as SearchParams
 }
 
 function createSearchRequestString(
@@ -39,6 +48,7 @@ function createSearchRequestString(
     offset: searchParams.offset,
     attributes: searchParams.attributes,
     facilities: typeof searchParams.facilities === 'object' ? searchParams.facilities?.join(',') : searchParams.facilities,
+    starRating: searchParams.starRatings && searchParams.starRatings?.join(','),
     variations: 'sapi4eva-hso-ctr-b,sapi4eva-imagedb-b,sapi4eva-own-place-hotel-mapping-2-b,sapi4eva-preheat-anchor-offers-b,sapi4eva-room-bundles-b,sapi4eva-price-range-v2-b'
   })
 
@@ -48,10 +58,12 @@ function createSearchRequestString(
 export async function getSearchResults(searchParams: SearchParams) {
   const requestString = createSearchRequestString(searchParams)
 
+  console.log(requestString)
+
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_HOSTNAME}/search?${requestString}`)
  
   if (!res.ok) {
-    throw new Error('Failed to fetch data')
+    throw new Error('Failed to fetch hotel results')
   }
  
   return res.json()
@@ -205,7 +217,9 @@ const CLIENT_PAGE_SIZE = 20
 export async function getResultsWithAvailability(params: SearchParams) {
   const log = createLogger()
 
-  const searchParams = requestToSearchParams(params, params.searchId)
+  const searchParams = params
+
+  console.log('-----searchParams-----', searchParams)
 
   const REQUEST_PAGE_SIZE = searchParams.offset === 0 ? 40 : 20
 

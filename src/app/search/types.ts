@@ -6,6 +6,7 @@ export interface UserRequestParams {
   rooms: string
   offset? :number
   facilities?: number | number[]
+  starRatings?: number | number[]
 }
 
 export interface SearchParams extends UserRequestParams {
@@ -13,6 +14,7 @@ export interface SearchParams extends UserRequestParams {
   searchId: string
   pageSize?: number
   attributes?: string
+  starRatings?: number[]
 }
 
 export interface AnchorResponse {
