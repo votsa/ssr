@@ -13,10 +13,9 @@ export async function SearchForm({
   searchParams,
   destination
 }: Props) {
-  const form = useRef(null)
+  const form = useRef<HTMLFormElement>(null)
 
   const onCheckboxChange = useCallback(() => {
-    //console.log(form)
     form.current?.submit()
   }, [])
 
