@@ -15,6 +15,14 @@ export interface SearchParams extends UserRequestParams {
   attributes?: string
 }
 
+export interface AnchorResponse {
+  anchor: Record<string, any>
+  anchorHotelId?: string
+  anchorType: string
+  hotelEntities?: Record<string, Hotel>
+  searchParameters: SearchParams
+}
+
 export interface RateBreakDown {
   base: number
   hotelFees: number
@@ -46,4 +54,12 @@ export interface Hotel {
   placeDisplayName: string
   imageURIs: string[]
   starRating: number
+}
+
+
+export interface SearchResults {
+  hasMoreResults: boolean
+  hotelEntities: Record<string, Hotel>
+  offerEntities: Record<string, OfferEntity>
+  hotelIds: string[]
 }

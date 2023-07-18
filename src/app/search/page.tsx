@@ -1,24 +1,28 @@
 import {Metadata} from 'next'
+import Image from 'next/image'
 
 import {Suspense} from 'react'
 import {v4 as uuidv4} from 'uuid'
 
 import {AnchorHotel, HotelsList, HotelsListFallback} from '@/src/components/Hotel'
+import {SearchForm} from '@/src/components/SearchForm'
 import {getImageProvider, SIZES} from '@/src/app/utils'
 
 import {getAnchor, getResultsWithAvailability, requestToSearchParams, getAvailability} from './apis'
 import UserProvider from './UserProvider'
-import {OfferEntity, SearchParams} from './types'
+import {OfferEntity, SearchParams, AnchorResponse, UserRequestParams, SearchResults} from './types'
 import {getUser} from './user'
 
 interface Props {
-  searchParams: SearchParams
+  searchParams: UserRequestParams
 }
 
 /**
  * Set dynamic metadata
  */
-export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const searchId = uuidv4()
+  const searchParams = requestToSearchParams(props.searchParams, searchId)
   const anchorResponse = await getAnchor(searchParams) ?? {}
 
   const images = []
@@ -48,53 +52,54 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   }
 }
 
+interface AnchorProps {
+  searchParams: SearchParams
+  anchorData: Promise<AnchorResponse>
+  anchorAvailabilityData: Promise<{results: OfferEntity[]}>
+}
+
 /**
  * Anchor hotel
  */
-async function Anchor(props: Props) {
-  const searchId = uuidv4()
-  const searchParams = requestToSearchParams(props.searchParams, searchId)
-  const anchorResponse = await getAnchor(searchParams)
-  const anchorHotel = anchorResponse?.hotelEntities?.[anchorResponse.anchorHotelId]
-
-  let anchorAvailability: {results: OfferEntity[]} = {results: []}
-
-  if (anchorHotel) {
-    anchorAvailability = await getAvailability({
-      hotelIds: [anchorHotel.objectID],
-      ...props.searchParams,
-      searchId
-    }, 2)
-  }
+async function Anchor({
+  anchorData,
+  anchorAvailabilityData,
+  searchParams
+}: AnchorProps) {
+  const [anchorResponse, anchorAvailability] = await Promise.all([anchorData, anchorAvailabilityData])
+  const anchorHotel = anchorResponse?.hotelEntities?.[searchParams.hotelId as string]
 
   return (
-    <div className="mt-6">
+    <>
       {anchorHotel && (
-        <>
+        <div className="mt-6">
           <div className="border border-blue-500 rounded-xl">
             <AnchorHotel
               hotel={anchorHotel}
               offerEntity={anchorAvailability.results?.[0]}
-              searchParams={props.searchParams}
+              searchParams={searchParams}
             />
           </div>
           <div className="text-xl mx-3 mt-8 font-normal">Great deals available</div>
-        </>
+        </div>
       )}
-    </div>
+    </>
   )
 }
 
+interface SearchResultsProps {
+  searchParams: SearchParams
+  searchResultsData: Promise<SearchResults>
+}
 
 /**
  * Search results
  */
-async function Search(props: Props) {
-  const searchId = uuidv4()
-
-  const searchParams = requestToSearchParams(props.searchParams, searchId)
-
-  const results = await getResultsWithAvailability(searchParams)
+async function Search({
+  searchResultsData,
+  searchParams
+}: SearchResultsProps) {
+  const results = await searchResultsData
 
   if (!results || !results.hotelIds.length) return <div className="text-lg text-center">No results found</div>
 
@@ -103,22 +108,105 @@ async function Search(props: Props) {
   )
 }
 
+interface NavBarProps {
+  searchParams: SearchParams
+  anchorData: Promise<AnchorResponse>
+}
+
+async function NavBarSearchForm(props: NavBarProps) {
+  const anchorResponse = await props.anchorData
+  const {anchor} = anchorResponse
+  const destination = anchor.hotelName ?? anchor.placeDisplayName
+
+  return (
+    <SearchForm destination={destination} searchParams={props.searchParams} />
+  )
+}
+
+function NavBarSearchFormFallback() {
+  return (
+    <div className="w-[680px] animate-pulse" role="status">
+      <div className="h-11 bg-gray-200 dark:bg-gray-700 w-full" />
+    </div>
+  )
+}
+
+function useServerSideSearch(userRequestParams: UserRequestParams) {
+  const searchId = uuidv4()
+  const searchParams = requestToSearchParams(userRequestParams, searchId)
+
+  const anchorData = getAnchor(searchParams)
+  const anchorAvailabilityData = searchParams.hotelId ? getAvailability({
+    hotelIds: [searchParams.hotelId],
+    ...searchParams
+  }, 2) : undefined
+
+  const searchResultsData = getResultsWithAvailability(searchParams)
+
+  return {
+    anchorData,
+    anchorAvailabilityData,
+    searchResultsData,
+    searchParams
+  }
+}
+
 /**
  * Search page loader
  */
-export default function PageLoader(props: Props) {
+export default function Page(props: Props) {
+  const {
+    anchorData,
+    anchorAvailabilityData,
+    searchResultsData,
+    searchParams
+} = useServerSideSearch(props.searchParams)
+
   return (
-    <main className="flex min-h-screen flex-col items-left p-3">
+    <>
       <UserProvider user={getUser()}>
-        {props.searchParams.hotelId && (
-          <Suspense fallback={<div className="border border-blue-500 rounded-xl mt-6"><HotelsListFallback items={1} /></div>}>
-            <Anchor searchParams={props.searchParams} />
-          </Suspense>
-        )}
-        <Suspense fallback={<HotelsListFallback />}>
-          <Search searchParams={props.searchParams} />
-        </Suspense>
+        <nav className="px-7 py-6 border-b sticky top-0 bg-white z-50">
+          <div className="grid grid-flow-col justify-stretch">
+            <div className="w-32 flex items-center">
+              <Image
+                src="https://www.vio.com/static/media/vio-logo.142636e625a9ec9028fe.svg"
+                alt="vio.com"
+                width={120}
+                height={26}
+                unoptimized
+              />
+            </div>
+            <div className="flex items-center justify-center">
+              <Suspense fallback={<NavBarSearchFormFallback />}>
+                <NavBarSearchForm
+                  searchParams={searchParams}
+                  anchorData={anchorData}
+                />
+              </Suspense>
+            </div>
+            <div className="w-32 flex items-center"></div>
+          </div>
+        </nav>
+        <div className="container mx-auto max-w-5xl">
+          <main className="flex min-h-screen flex-col items-left p-3">
+            {searchParams.hotelId && (
+              <Suspense fallback={<div className="border border-blue-500 rounded-xl mt-6"><HotelsListFallback items={1} /></div>}>
+                <Anchor
+                  anchorData={anchorData}
+                  anchorAvailabilityData={anchorAvailabilityData as Promise<{results: OfferEntity[]}>}
+                  searchParams={searchParams}
+                />
+              </Suspense>
+            )}
+            <Suspense fallback={<HotelsListFallback />}>
+              <Search
+                searchParams={searchParams}
+                searchResultsData={searchResultsData}
+              />
+            </Suspense>
+          </main>
+        </div>
       </UserProvider>
-    </main>
+    </>
   )
 }
