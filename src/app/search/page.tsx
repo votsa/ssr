@@ -144,6 +144,7 @@ function useServerSideSearch(userRequestParams: UserRequestParams) {
   const searchResultsData = getResultsWithAvailability(searchParams)
 
   return {
+    searchId,
     anchorData,
     anchorAvailabilityData,
     searchResultsData,
@@ -156,6 +157,7 @@ function useServerSideSearch(userRequestParams: UserRequestParams) {
  */
 export default function Page(props: Props) {
   const {
+    searchId,
     anchorData,
     anchorAvailabilityData,
     searchResultsData,
@@ -177,7 +179,7 @@ export default function Page(props: Props) {
               />
             </div>
             <div className="flex items-center justify-center">
-              <Suspense fallback={<NavBarSearchFormFallback />}>
+              <Suspense key={`form-${searchId}`} fallback={<NavBarSearchFormFallback />}>
                 <NavBarSearchForm
                   searchParams={searchParams}
                   anchorData={anchorData}
@@ -190,7 +192,10 @@ export default function Page(props: Props) {
         <div className="container mx-auto max-w-5xl">
           <main className="flex min-h-screen flex-col items-left p-3">
             {searchParams.hotelId && (
-              <Suspense fallback={<div className="border border-blue-500 rounded-xl mt-6"><HotelsListFallback items={1} /></div>}>
+              <Suspense
+                key={`anchor-${searchId}`}
+                fallback={<div className="border border-blue-500 rounded-xl mt-6"><HotelsListFallback items={1} /></div>}
+              >
                 <Anchor
                   anchorData={anchorData}
                   anchorAvailabilityData={anchorAvailabilityData as Promise<{results: OfferEntity[]}>}
@@ -198,7 +203,10 @@ export default function Page(props: Props) {
                 />
               </Suspense>
             )}
-            <Suspense fallback={<HotelsListFallback />}>
+            <Suspense
+              key={`search-${searchId}`}
+              fallback={<HotelsListFallback />}
+            >
               <Search
                 searchParams={searchParams}
                 searchResultsData={searchResultsData}
