@@ -9,10 +9,14 @@ import {User} from './user'
 function createOffersRequestString(
   hotelIds: string[],
   searchParams: SearchParams,
-  user: User
+  user: User,
+  isAnchor: boolean,
+  sessionId?: string
 ) {
   const urlParameters = removeEmpty({
-    hotelIds: hotelIds?.join(','),
+    sessionId,
+    hotelIds: isAnchor ? undefined : hotelIds?.join(','),
+    anchorHotelId: isAnchor ? hotelIds[0] : undefined,
     checkIn: searchParams.checkIn,
     checkOut: searchParams.checkOut,
     rooms: searchParams.rooms,
@@ -43,19 +47,22 @@ function offersArrayToObject(results: OfferEntity[] = []) {
 
 export interface OffersResponse {
   offerEntities: Record<string, OfferEntity>
+  sessionId?: string
   status: {
     complete: boolean
   }
 }
 
-export async function getOffers(
+export async function fetchOffers(
   hotelIds: string[],
   searchParams: SearchParams,
-  user: User
+  user: User,
+  isAnchor: boolean,
+  sessionId?: string
 ): Promise<OffersResponse> {
-  const requestString = createOffersRequestString(hotelIds, searchParams, user)
+  const requestString = createOffersRequestString(hotelIds, searchParams, user, isAnchor, sessionId)
 
-  const offersUrl = `${process.env.NEXT_PUBLIC_API_HOSTNAME}/offers?${requestString}`
+  const offersUrl = `${process.env.NEXT_PUBLIC_API_HOSTNAME}/offers/poll?${requestString}`
 
   const res = await fetch(offersUrl)
 
@@ -66,9 +73,39 @@ export async function getOffers(
   const response = await res.json()
 
   return {
+    sessionId: response.sessionId,
     status: response.status,
     offerEntities: offersArrayToObject(response.results)
   }
+}
+
+export async function getOffers(
+  hotelIds: string[],
+  searchParams: SearchParams,
+  user: User,
+  isAnchor: boolean,
+  callBack: (response: OffersResponse) => void,
+) {
+
+  return new Promise((resolve) => {
+    async function poll(
+      sessionId?: string
+    ) {
+      const response = await fetchOffers(hotelIds, searchParams, user, isAnchor, sessionId)
+
+      callBack(response)
+
+      if (response.status.complete !== true) {
+        setTimeout(() => {
+          poll(response.sessionId)
+        }, 0)
+      } else {
+        resolve(response)
+      }
+    }
+
+    poll()
+  })
 }
 
 export interface Results {

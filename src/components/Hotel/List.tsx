@@ -1,7 +1,7 @@
 'use client'
 
 import {OffersList} from '@/src/components/Offers'
-import {useSearch} from '@/src/app/search/useSearch'
+import {useSearch} from '@/src/app/search/hooks/useSearch'
 import {SearchParams, Hotel, OfferEntity} from '@/src/app/search/types'
 
 import {HotelCard} from './HotelCard'

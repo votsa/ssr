@@ -108,48 +108,49 @@ export async function getAnchor(searchParams: SearchParams) {
   return res.json()
 }
 
-export interface AvailabilityParams extends SearchParams {
-  hotelIds: string[]
+export interface OffersParams extends SearchParams {
+  hotelIds?: string[]
+  anchorHotelId?: string
 }
 
-function createAvailabilityRequestString(
-  searchParams: AvailabilityParams
+interface OffersResponse {
+  results: OfferEntity[]
+}
+
+function createOffersRequestString(
+  searchParams: OffersParams,
+  sessionId?: string
 ) {
   const user = getUser()
 
   const urlParameters = removeEmpty({
-    destination: searchParams.hotelIds?.join(','),
+    sessionId,
+    hotelIds: searchParams.hotelIds?.join(','),
+    anchorHotelId: searchParams.anchorHotelId,
     checkIn: searchParams.checkIn,
     checkOut: searchParams.checkOut,
     rooms: searchParams.rooms,
     anonymousId: user.anonymousId,
     searchId: searchParams.searchId,
-    locale: 'en',
+    language: 'en',
     currency: 'EUR',
     countryCode: user.countryCode,
-    userAgent: 'Mozilla%2F5.0+%28Macintosh%3B+Intel+Mac+OS+X+10_15_7%29+AppleWebKit%2F537.36+%28KHTML%2C+like+Gecko%29+Chrome%2F114.0.0.0+Safari%2F537.36',
+    brand: 'vio',
     deviceType: 'desktop',
-    offersCount: 3,
-    roomLimit: 2,
-    tier: 'plus',
     cugDeals: 'signed_in,offline,sensitive,prime,fsf',
+    tier: 'plus',
     clientRequestId: uuidv4()
   })
 
   return new URLSearchParams(urlParameters).toString()
 }
 
-export async function availabilitySearch(searchParams: AvailabilityParams) {
-  const requestString = createAvailabilityRequestString(searchParams)
+export async function fetchOffers(searchParams: OffersParams, sessionId?: string) {
+  const requestString = createOffersRequestString(searchParams, sessionId)
 
-  const offersUrl = `${process.env.NEXT_PUBLIC_AVAILABILITY_API_HOSTNAME}/v3/search?${requestString}`
+  const offersUrl = `${process.env.NEXT_PUBLIC_API_HOSTNAME}/offers/poll?${requestString}`
 
-  const requestHeaders: HeadersInit = new Headers();
-  requestHeaders.set('X-API-Key', process.env.NEXT_PUBLIC_AVAILABILITY_API_KEY as string)
-
-  const response = await fetch(offersUrl, {
-    headers: requestHeaders
-  })
+  const response = await fetch(offersUrl)
 
   if (!response.ok) {
     throw new Error('Failed to fetch availability data')
@@ -158,11 +159,7 @@ export async function availabilitySearch(searchParams: AvailabilityParams) {
   return response.json()
 }
 
-interface AvailabilityResponse {
-  results: OfferEntity[]
-}
-
-export function getAvailability(params: AvailabilityParams, polls = 5): Promise<AvailabilityResponse> {
+export function getAvailability(params: OffersParams, polls = 5): Promise<OffersResponse> {
   let pollsCount = 0
 
   const CLIENT_PAGE_SIZE = params.offset === 0 ? 40 : 20
@@ -170,8 +167,8 @@ export function getAvailability(params: AvailabilityParams, polls = 5): Promise<
   const log = createLogger()
 
   return new Promise((resolve) => {
-    async function poll() {
-      const response = await availabilitySearch(params)
+    async function poll(sessionId?: string) {
+      const response = await fetchOffers(params, sessionId)
 
       let availability = 0
 
@@ -181,7 +178,11 @@ export function getAvailability(params: AvailabilityParams, polls = 5): Promise<
 
       pollsCount++
 
-      log('Availability iteration', `pageSize = ${CLIENT_PAGE_SIZE}, iteration = ${pollsCount}, requested = ${params.hotelIds?.length} available = ${availability}`)
+      if (params.anchorHotelId) {
+        log('Anchor Availability iteration', `polls = ${polls}, iteration = ${pollsCount}, available = ${availability}`)
+      } else {
+        log('Availability iteration', `pageSize = ${CLIENT_PAGE_SIZE}, iteration = ${pollsCount}, requested = ${params.hotelIds?.length} available = ${availability}`)
+      }
 
       if (pollsCount >= polls || response?.status.complete || (availability >= CLIENT_PAGE_SIZE && pollsCount > 1)) {
         pollsCount = 0
@@ -189,8 +190,8 @@ export function getAvailability(params: AvailabilityParams, polls = 5): Promise<
         resolve(response)
       } else {
         setTimeout(() => {
-          poll()
-        }, 1000);
+          poll(response.sessionId)
+        }, 0);
       }
     }
 

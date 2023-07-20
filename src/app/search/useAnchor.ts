@@ -22,14 +22,15 @@ export const useAnchor = (props: Props) => {
     async function loadOffers() {
       setIsComplete(false)
 
-      const offersResponse = await getOffers([hotel.objectID], props.searchParams, user)
-
-      setOfferEntity(offersResponse.offerEntities[hotel.objectID])
+      await getOffers([hotel.objectID], props.searchParams, user, true, (response) => {
+        setOfferEntity(response.offerEntities[hotel.objectID])
+      })
 
       setIsComplete(true)
     }
 
     void loadOffers()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return {

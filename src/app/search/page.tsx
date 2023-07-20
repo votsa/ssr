@@ -8,7 +8,8 @@ import {AnchorHotel, HotelsList, HotelsListFallback} from '@/src/components/Hote
 import {SearchForm} from '@/src/components/SearchForm'
 import {getImageProvider, SIZES} from '@/src/app/utils'
 
-import {getAnchor, getResultsWithAvailability, requestToSearchParams, getAvailability} from './apis'
+import {useServerSideSearch} from './hooks/useServerSideSearch'
+import {getAnchor, requestToSearchParams} from './apis'
 import UserProvider from './UserProvider'
 import {OfferEntity, SearchParams, AnchorResponse, UserRequestParams, SearchResults} from './types'
 import {getUser} from './user'
@@ -129,27 +130,6 @@ function NavBarSearchFormFallback() {
       <div className="h-11 bg-gray-200 dark:bg-gray-700 w-full" />
     </div>
   )
-}
-
-function useServerSideSearch(userRequestParams: UserRequestParams) {
-  const searchId = uuidv4()
-  const searchParams = requestToSearchParams(userRequestParams, searchId)
-
-  const anchorData = getAnchor(searchParams)
-  const anchorAvailabilityData = searchParams.hotelId ? getAvailability({
-    hotelIds: [searchParams.hotelId],
-    ...searchParams
-  }, 2) : undefined
-
-  const searchResultsData = getResultsWithAvailability(searchParams)
-
-  return {
-    searchId,
-    anchorData,
-    anchorAvailabilityData,
-    searchResultsData,
-    searchParams
-  }
 }
 
 /**

@@ -1,9 +1,9 @@
 'use client'
 
 import {useCallback, useState, useEffect, useContext} from 'react'
-import {SearchParams} from './types'
-import {getOffers, getData, Results} from './clientApi'
-import {UserContext} from './UserProvider'
+import {SearchParams, } from '../types'
+import {getOffers, getData, Results} from '../clientApi'
+import {UserContext} from '../UserProvider'
 
 const CLIENT_PAGE_SIZE = 20
 
@@ -20,17 +20,18 @@ export const useSearch = (searchParams: SearchParams, initialResults: Results) =
     async function loadOffers() {
       setIsComplete(false)
 
-      const offersResponse = await getOffers(hotelIds, searchParams, user)
-
-      setOfferEntities((existingOfferEntities) => ({
-        ...existingOfferEntities,
-        ...offersResponse.offerEntities
-      }))
+      await getOffers(hotelIds, searchParams, user, false, (response) => {
+        setOfferEntities((existingOfferEntities) => ({
+          ...existingOfferEntities,
+          ...response.offerEntities
+        }))
+      })
 
       setIsComplete(true)
     }
 
     void loadOffers()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -62,12 +63,12 @@ export const useSearch = (searchParams: SearchParams, initialResults: Results) =
 
       setHasMoreResults(nextPage.hasMoreResults)
 
-      const offersResponse = await getOffers(nextPage.hotelIds, searchParams, user)
-
-      setOfferEntities((existingOfferEntities) => ({
-        ...existingOfferEntities,
-        ...offersResponse.offerEntities
-      }))
+      await getOffers(nextPage.hotelIds, searchParams, user, false, (response) => {
+        setOfferEntities((existingOfferEntities) => ({
+          ...existingOfferEntities,
+          ...response.offerEntities
+        }))
+      })
 
       setIsComplete(true)
     }
