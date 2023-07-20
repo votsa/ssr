@@ -6,10 +6,10 @@ export interface UserRequestParams {
   rooms: string
   offset? :number
   facilities?: number | number[]
-  starRatings?: number | number[]
+  starRatings?: string | string[]
 }
 
-export interface SearchParams extends UserRequestParams {
+export interface SearchParams extends Omit<UserRequestParams, 'starRatings'> {
   offset: number
   searchId: string
   pageSize?: number

@@ -11,10 +11,7 @@ interface Props {
   searchParams: SearchParams
 }
 
-export function SearchForm({
-  searchParams,
-  destination
-}: Props) {
+function useSearchForm(searchParams: SearchParams, destination: string) {
   const [formParams, setFormParams] = useState(searchParams)
   const router = useRouter()
   const pathname = usePathname()
@@ -39,7 +36,7 @@ export function SearchForm({
     submitForm(formParams)
   }, [formParams, submitForm])
 
-  const onStarRatingsChange = useCallback((i: number) => () => {
+  const handleStarRatingsChange = useCallback((i: number) => () => {
     const set = new Set(formParams.starRatings)
 
     if (set.has(i)) {
@@ -65,8 +62,27 @@ export function SearchForm({
     })
   }, [setFormParams])
 
+  return {
+    formParams,
+    onStarRatingsChange: handleStarRatingsChange,
+    onInputChange: handleInputChange,
+    onSubmit: handleSubmit
+  }
+}
+
+export function SearchForm({
+  searchParams,
+  destination
+}: Props) {
+  const {
+    onStarRatingsChange,
+    onInputChange,
+    onSubmit,
+    formParams
+  } = useSearchForm(searchParams, destination)
+
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={onSubmit}>
       <div className="flex">
         <input
           className="border p-2 rounded mx-1 w-32"
@@ -80,7 +96,7 @@ export function SearchForm({
             type="text"
             name="hotelId"
             value={formParams.hotelId}
-            onChange={handleInputChange}
+            onChange={onInputChange}
           />
         }
         {!!searchParams.placeId &&
@@ -89,7 +105,7 @@ export function SearchForm({
             type="text"
             name="placeId"
             value={formParams.placeId} 
-            onChange={handleInputChange}
+            onChange={onInputChange}
           />
         }
         <input
@@ -97,21 +113,21 @@ export function SearchForm({
           type="text"
           name="checkIn"
           value={formParams.checkIn} 
-          onChange={handleInputChange}
+          onChange={onInputChange}
         />
         <input
           className="border p-2 rounded mx-1 w-32"
           type="text"
           name="checkOut"
           value={formParams.checkOut} 
-          onChange={handleInputChange}
+          onChange={onInputChange}
         />
         <input
           className="border p-2 rounded mx-1 w-16"
           type="text"
           name="rooms"
           value={formParams.rooms} 
-          onChange={handleInputChange}
+          onChange={onInputChange}
         />
         <button type="submit" className="p-2 bg-blue-600 rounded text-white">
           Search

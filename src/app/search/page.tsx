@@ -186,7 +186,7 @@ export default function Page(props: Props) {
                 />
               </Suspense>
             </div>
-            <div className="w-32 flex items-center"></div>
+            <div className="w-32 flex items-center" />
           </div>
         </nav>
         <div className="container mx-auto max-w-5xl">

@@ -1,22 +1,22 @@
 import {v4 as uuidv4} from 'uuid'
 import {removeEmpty} from '@/src/app/utils'
 
-import {SearchParams, OfferEntity, Hotel, UserRequestParams, Offer} from './types'
+import {SearchParams, OfferEntity, Hotel, UserRequestParams} from './types'
 import {getUser} from './user'
 
 
-export function requestToSearchParams(requests: UserRequestParams, searchId: string): SearchParams {
-  let starRatings
-
-  if (requests.starRatings) {
-    starRatings = typeof requests.starRatings === 'object'
-      ? (requests.starRatings as number[]).map(Number)
-      : [requests.starRatings].map(Number)
+function parseStarRatings(starRatings?: string | string[]) {
+  if (typeof starRatings === 'string') {
+    return (starRatings as string).split(',').map(Number)
+  } else if (typeof starRatings === 'object') {
+    return starRatings.map(Number)
   }
+}
 
+export function requestToSearchParams(requests: UserRequestParams, searchId: string): SearchParams {
   return {
     ...requests,
-    starRatings,
+    starRatings: parseStarRatings(requests.starRatings),
     offset: Number(requests.offset ?? 0),
     rooms: requests.rooms ?? '2',
     searchId
@@ -57,8 +57,6 @@ function createSearchRequestString(
 
 export async function getSearchResults(searchParams: SearchParams) {
   const requestString = createSearchRequestString(searchParams)
-
-  console.log(requestString)
 
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_HOSTNAME}/search?${requestString}`)
  
@@ -207,7 +205,9 @@ function createLogger() {
     const timeNow = Date.now()
     const timeDifference = timeNow - startTime
 
-    console.log('LOG:-------------->', name, timeDifference, value)
+    if (process.env.NEXT_PUBLIC_DEBUG === 'true') {
+      console.log('LOG:-------------->', name, timeDifference, value)
+    }
   }
 }
 
@@ -217,9 +217,10 @@ const CLIENT_PAGE_SIZE = 20
 export async function getResultsWithAvailability(params: SearchParams) {
   const log = createLogger()
 
-  const searchParams = params
-
-  console.log('-----searchParams-----', searchParams)
+  const searchParams = {
+    ...params,
+    offset: Number(params?.offset ?? 0)
+  }
 
   const REQUEST_PAGE_SIZE = searchParams.offset === 0 ? 40 : 20
 
@@ -277,7 +278,7 @@ export async function getResultsWithAvailability(params: SearchParams) {
       return offerEntity.id
     })
 
-  log('Search complete')
+  log('Search complete', `${searchParams.offset}, ${REQUEST_PAGE_SIZE + searchParams.offset}, ${REQUEST_PAGE_SIZE}, ${availableHotels?.length}, ${hotelIdsToReturn?.length}`)
 
   const hasMoreResults =
     availableHotels.length > CLIENT_PAGE_SIZE + searchParams.offset
